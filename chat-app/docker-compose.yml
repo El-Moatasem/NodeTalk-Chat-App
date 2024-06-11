@@ -1,0 +1,28 @@
+# docker-compose.yml
+version: '3'
+services:
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/chat-app
+      - JWT_SECRET=your_jwt_secret
+    depends_on:
+      - mongo
+      - redis
+
+volumes:
+  mongo-data:
