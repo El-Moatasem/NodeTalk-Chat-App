@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+</head>
+<body>
+    <h1>Chat Room</h1>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type a message...">
+    <button id="sendButton">Send</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io('http://localhost:5000');
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+
+            // Join a room
+            socket.emit('joinRoom', { roomId: '<ROOM_ID>' });
+
+            // Send a message
+            document.getElementById('sendButton').addEventListener('click', () => {
+                const message = document.getElementById('messageInput').value;
+                socket.emit('sendMessage', { roomId: '<ROOM_ID>', message });
+            });
+
+            // Listen for messages
+            socket.on('message', (message) => {
+                const messagesDiv = document.getElementById('messages');
+                const messageDiv = document.createElement('div');
+                messageDiv.textContent = message;
+                messagesDiv.appendChild(messageDiv);
+            });
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+        });
+    </script>
+</body>
+</html>
