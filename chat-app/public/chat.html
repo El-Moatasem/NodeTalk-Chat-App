@@ -3,18 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Rooms</title>
+    <title>Chat Rooms - NodeTalk</title>
     <style>
-        body { font-family: Arial, sans-serif; }
-        .container { width: 600px; margin: 0 auto; }
-        .form-group { margin-bottom: 15px; }
-        .form-group button { width: 100%; padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        body { 
+            font-family: Arial, sans-serif; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .container { 
+            width: 600px; 
+            padding: 20px; 
+            background-color: white; 
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .logo { 
+            text-align: center; 
+            margin-bottom: 20px; 
+        }
+        .logo h1 {
+            margin: 0;
+            font-size: 2em;
+            color: #4CAF50;
+        }
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+        .form-group input { 
+            width: 100%; 
+            padding: 10px; 
+            margin-top: 5px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px;
+        }
+        .form-group button { 
+            width: 100%; 
+            padding: 10px; 
+            background-color: #4CAF50; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .form-group button:hover {
+            background-color: #45a049;
+        }
         .chat-rooms { margin-top: 20px; }
-        .chat-room { padding: 10px; border: 1px solid #ddd; margin-bottom: 10px; }
+        .chat-room { 
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            margin-bottom: 10px; 
+            border-radius: 4px; 
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="logo">
+            <h1>NodeTalk</h1>
+        </div>
         <h2>Chat Rooms</h2>
         <div class="form-group">
             <input type="text" id="roomName" placeholder="New room name">
