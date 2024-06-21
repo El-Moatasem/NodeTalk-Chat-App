@@ -1,5 +1,5 @@
 // src/server.js
-const app = require('./app'); // Correct path to app.js
+const app = require('./app');
 const http = require('http');
 const socketIO = require('socket.io');
 
