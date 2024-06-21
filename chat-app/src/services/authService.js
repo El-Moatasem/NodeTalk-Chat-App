@@ -11,7 +11,8 @@ const register = async (username, email, password) => {
 
   const user = new User({ username, email, password });
   await user.save();
-  return user;
+  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  return { user, token };
 };
 
 const login = async (email, password) => {
