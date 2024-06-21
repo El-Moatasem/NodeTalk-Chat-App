@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+    <title>Login</title>
     <style>
         body { font-family: Arial, sans-serif; }
         .container { width: 300px; margin: 0 auto; }
@@ -15,11 +15,7 @@
 </head>
 <body>
     <div class="container">
-        <h2>Register</h2>
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" required>
-        </div>
+        <h2>Login</h2>
         <div class="form-group">
             <label for="email">Email</label>
             <input type="email" id="email" required>
@@ -29,29 +25,25 @@
             <input type="password" id="password" required>
         </div>
         <div class="form-group">
-            <button onclick="register()">Register</button>
-        </div>
-        <div class="form-group">
-            <a href="login.html">Already have an account? Login</a>
+            <button onclick="login()">Login</button>
         </div>
     </div>
 
     <script>
-        async function register() {
-            const username = document.getElementById('username').value;
+        async function login() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
-            const response = await fetch('http://localhost:5000/api/auth/register', {
+            const response = await fetch('http://localhost:5000/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, password })
+                body: JSON.stringify({ email, password })
             });
 
             const data = await response.json();
             if (response.ok) {
-                alert('Registration successful');
-                window.location.href = 'login.html';
+                localStorage.setItem('token', data.token);
+                window.location.href = 'chat.html';
             } else {
                 alert(data.error);
             }

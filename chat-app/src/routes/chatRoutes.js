@@ -9,5 +9,6 @@ router.post('/join-room', auth, chatController.joinRoom);
 router.post('/leave-room', auth, chatController.leaveRoom);
 router.post('/send-message', auth, chatController.sendMessage);
 router.get('/messages/:roomId', auth, chatController.getMessages);
+router.get('/rooms', auth, chatController.getChatRooms); // Add this line
 
 module.exports = router;

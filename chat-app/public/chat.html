@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Rooms</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        .form-group button { width: 100%; padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        .chat-rooms { margin-top: 20px; }
+        .chat-room { padding: 10px; border: 1px solid #ddd; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Chat Rooms</h2>
+        <div class="form-group">
+            <input type="text" id="roomName" placeholder="New room name">
+            <button onclick="createRoom()">Create Room</button>
+        </div>
+        <div class="chat-rooms" id="chatRooms">
+            <!-- Chat rooms will be listed here -->
+        </div>
+    </div>
+
+    <script>
+        async function fetchChatRooms() {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/chat/rooms', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            const data = await response.json();
+            const chatRooms = document.getElementById('chatRooms');
+            chatRooms.innerHTML = '';
+
+            data.forEach(room => {
+                const div = document.createElement('div');
+                div.className = 'chat-room';
+                div.innerHTML = `<strong>${room.name}</strong>`;
+                chatRooms.appendChild(div);
+            });
+        }
+
+        async function createRoom() {
+            const roomName = document.getElementById('roomName').value;
+            const token = localStorage.getItem('token');
+
+            const response = await fetch('http://localhost:5000/api/chat/create-room', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({ name: roomName, isPrivate: false })
+            });
+
+            if (response.ok) {
+                fetchChatRooms();
+            } else {
+                const data = await response.json();
+                alert(data.error);
+            }
+        }
+
+        // Fetch chat rooms when the page loads
+        window.onload = fetchChatRooms;
+    </script>
+</body>
+</html>

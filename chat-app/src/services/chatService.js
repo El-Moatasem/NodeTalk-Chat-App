@@ -41,10 +41,16 @@ const getMessages = async (roomId) => {
   return messages;
 };
 
+const getChatRooms = async () => {
+  const chatRooms = await ChatRoom.find();
+  return chatRooms;
+};
+
 module.exports = {
   createRoom,
   joinRoom,
   leaveRoom,
   sendMessage,
   getMessages,
+  getChatRooms,
 };

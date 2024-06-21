@@ -50,3 +50,12 @@ exports.getMessages = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.getChatRooms = async (req, res) => {
+  try {
+    const chatRooms = await chatService.getChatRooms();
+    res.json(chatRooms);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
