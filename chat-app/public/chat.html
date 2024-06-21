@@ -30,35 +30,48 @@
             font-size: 2em;
             color: #4CAF50;
         }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
         .form-group { 
             margin-bottom: 15px; 
+            display: flex;
         }
         .form-group input { 
-            width: 100%; 
+            flex: 1; 
             padding: 10px; 
-            margin-top: 5px; 
             border: 1px solid #ccc; 
-            border-radius: 4px;
+            border-radius: 4px 0 0 4px;
+            border-right: none;
+            box-sizing: border-box;
         }
         .form-group button { 
-            width: 100%; 
             padding: 10px; 
             background-color: #4CAF50; 
             color: white; 
             border: none; 
             cursor: pointer; 
-            border-radius: 4px;
+            border-radius: 0 4px 4px 0;
             font-size: 16px;
         }
         .form-group button:hover {
             background-color: #45a049;
         }
-        .chat-rooms { margin-top: 20px; }
+        .chat-rooms { 
+            margin-top: 20px; 
+        }
         .chat-room { 
             padding: 10px; 
             border: 1px solid #ddd; 
             margin-bottom: 10px; 
-            border-radius: 4px; 
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .chat-room strong {
+            flex: 1;
         }
     </style>
 </head>

@@ -30,6 +30,10 @@
             font-size: 2em;
             color: #4CAF50;
         }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
         .form-group { 
             margin-bottom: 15px; 
         }
@@ -38,11 +42,12 @@
             font-weight: bold; 
         }
         .form-group input { 
-            width: 100%; 
+            width: calc(100% - 20px); 
             padding: 10px; 
             margin-top: 5px; 
             border: 1px solid #ccc; 
             border-radius: 4px;
+            box-sizing: border-box;
         }
         .form-group button { 
             width: 100%; 
