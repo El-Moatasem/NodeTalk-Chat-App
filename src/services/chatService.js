@@ -70,6 +70,23 @@ const editMessage = async (messageId, userId, newContent) => {
   return message;
 };
 
+
+const deleteMessage = async (messageId, userId) => {
+  const message = await Message.findById(messageId);
+
+  if (!message) {
+    throw new Error('Message not found');
+  }
+
+  if (!message.sender.equals(userId)) {
+    throw new Error('You can only delete your own messages');
+  }
+
+  await message.remove();
+  return { message: 'Message deleted' };
+};
+
+
 module.exports = {
   createRoom,
   joinRoom,
@@ -77,5 +94,6 @@ module.exports = {
   sendMessage,
   getMessages,
   editMessage,
+  deleteMessage,
   getChatRooms,
 };

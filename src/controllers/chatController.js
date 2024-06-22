@@ -71,26 +71,20 @@ exports.editMessage = async (req, res) => {
   }
 };
 
+
+
 exports.deleteMessage = async (req, res) => {
   try {
     const { messageId } = req.body;
-    const message = await Message.findById(messageId);
-
-    if (!message) {
-      return res.status(404).json({ error: 'Message not found' });
-    }
-
-    if (!message.sender.equals(req.user._id)) {
-      return res.status(403).json({ error: 'You can only delete your own messages' });
-    }
-
-    await message.remove();
-    res.json({ message: 'Message deleted' });
-    publishEvent('messageDeleted', JSON.stringify(message));
+    const response = await chatService.deleteMessage(messageId, req.user._id);
+    res.json(response);
+    publishEvent('messageDeleted', JSON.stringify(response));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
+
 
 exports.searchMessages = async (req, res) => {
   try {
