@@ -75,16 +75,24 @@
             border: 1px solid #ddd; 
             margin-bottom: 10px; 
             border-radius: 4px;
-            position: relative;
+            display: flex;
+            justify-content: space-between;
         }
-        .message .actions {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            display: none;
+        .message .message-content {
+            display: flex;
+            flex-direction: column;
         }
-        .message:hover .actions {
-            display: block;
+        .message.user {
+            background-color: #e0f7fa;
+            align-self: flex-start;
+        }
+        .message.other {
+            background-color: #ffebee;
+            align-self: flex-end;
+        }
+        .message-content .username {
+            font-weight: bold;
+            margin-bottom: 5px;
         }
         .back-to-chat {
             text-align: right;
@@ -102,9 +110,28 @@
         .back-to-chat button:hover {
             background-color: #45a049;
         }
+        .edit-btn, .delete-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        .delete-btn {
+            background-color: #f44336;
+        }
+        .edit-btn:hover {
+            background-color: #45a049;
+        }
+        .delete-btn:hover {
+            background-color: #e53935;
+        }
         .search-group {
-            margin-bottom: 15px;
             display: flex;
+            margin-bottom: 15px;
         }
         .search-group input {
             flex: 1;
@@ -184,13 +211,18 @@
         function displayMessage(message) {
             const messagesDiv = document.getElementById('messages');
             const div = document.createElement('div');
-            div.className = 'message';
+            div.className = `message ${message.sender._id === getUserId() ? 'user' : 'other'}`;
             div.innerHTML = `
-                <span>${message.sender.username}: ${message.content}</span>
-                <div class="actions">
-                    <button onclick="editMessage('${message._id}', '${message.content}')">Edit</button>
-                    <button onclick="deleteMessage('${message._id}')">Delete</button>
+                <div class="message-content">
+                    <div class="username">${message.sender.username}</div>
+                    <div>${message.content}</div>
                 </div>
+                ${message.sender._id === getUserId() ? `
+                    <div>
+                        <button class="edit-btn" onclick="editMessage('${message._id}', '${message.content}')">Edit</button>
+                        <button class="delete-btn" onclick="deleteMessage('${message._id}')">Delete</button>
+                    </div>
+                ` : ''}
             `;
             messagesDiv.appendChild(div);
         }
@@ -199,7 +231,7 @@
             const messageInput = document.getElementById('messageInput');
             const content = messageInput.value;
             const token = localStorage.getItem('token');
-            const user = decodeToken(token); // Use decodeToken function to extract user info
+            const user = decodeToken(token);
 
             console.log('Token:', token);
             console.log('Content:', content);
@@ -216,6 +248,12 @@
             return JSON.parse(decoded);
         }
 
+        function getUserId() {
+            const token = localStorage.getItem('token');
+            const user = decodeToken(token);
+            return user.userId;
+        }
+
         function backToChatRooms() {
             socket.emit('leaveRoom', { roomId });
             window.location.href = 'chat.html';
@@ -227,67 +265,56 @@
             window.location.href = 'login.html';
         }
 
+        function searchMessages() {
+            const keyword = document.getElementById('searchInput').value;
+            if (keyword.trim() === '') {
+                fetchMessages();
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+            fetch(`${baseURL}/api/chat/messages/${roomId}/search?keyword=${keyword}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messagesDiv = document.getElementById('messages');
+                messagesDiv.innerHTML = '';
+                data.forEach(message => {
+                    displayMessage(message);
+                });
+            });
+        }
+
         async function editMessage(messageId, currentContent) {
             const newContent = prompt('Edit your message:', currentContent);
-            if (newContent !== null) {
-                const token = localStorage.getItem('token');
-                const response = await fetch(`${baseURL}/api/chat/edit-message`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({ messageId, newContent })
-                });
-
-                if (response.ok) {
-                    fetchMessages();
-                } else {
-                    const data = await response.json();
-                    alert(data.error);
-                }
+            if (newContent === null || newContent.trim() === '') {
+                return;
             }
+
+            const token = localStorage.getItem('token');
+            await fetch(`${baseURL}/api/chat/messages/${messageId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({ content: newContent })
+            });
+
+            fetchMessages();
         }
 
         async function deleteMessage(messageId) {
-            const confirmDelete = confirm('Are you sure you want to delete this message?');
-            if (confirmDelete) {
-                const token = localStorage.getItem('token');
-                const response = await fetch(`${baseURL}/api/chat/delete-message`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({ messageId })
-                });
-
-                if (response.ok) {
-                    fetchMessages();
-                } else {
-                    const data = await response.json();
-                    alert(data.error);
-                }
-            }
-        }
-
-        async function searchMessages() {
-            const keyword = document.getElementById('searchInput').value;
             const token = localStorage.getItem('token');
-            const response = await fetch(`${baseURL}/api/chat/search-messages?roomId=${roomId}&keyword=${keyword}`, {
+            await fetch(`${baseURL}/api/chat/messages/${messageId}`, {
+                method: 'DELETE',
                 headers: { 'Authorization': 'Bearer ' + token }
             });
 
-            const data = await response.json();
-            const messagesDiv = document.getElementById('messages');
-            messagesDiv.innerHTML = '';
-
-            data.forEach(message => {
-                displayMessage(message);
-            });
+            fetchMessages();
         }
 
-        // Fetch messages when the page loads
         window.onload = fetchMessages;
     </script>
 </body>
