@@ -23,14 +23,16 @@ io.on('connection', (socket) => {
         console.log(`User left room ${roomId}`);
     });
 
+
     socket.on('sendMessage', async ({ roomId, content, sender }) => {
         console.log('Received message data:', { roomId, content, sender });
-
+    
         const message = new Message({ roomId, content, sender });
         try {
             await message.save();
             const populatedMessage = await message.populate('sender', 'username').execPopulate();
             io.to(roomId).emit('message', {
+                _id: populatedMessage._id, // Ensure the message ID is included
                 sender: populatedMessage.sender,
                 content: populatedMessage.content,
                 roomId: populatedMessage.roomId,
@@ -40,6 +42,7 @@ io.on('connection', (socket) => {
             console.error('Error saving message:', error);
         }
     });
+
 
     socket.on('disconnect', () => {
         console.log('Client disconnected');

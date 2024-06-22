@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -237,6 +236,10 @@
 
             messageInput.value = '';
         }
+
+        socket.on('message', message => {
+            displayMessage(message);
+        });
 
         function decodeToken(token) {
             const payload = token.split('.')[1];
