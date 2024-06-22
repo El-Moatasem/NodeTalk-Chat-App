@@ -103,3 +103,28 @@ exports.getChatRooms = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.getPrivateRoom = async (req, res) => {
+  try {
+      const { user1, user2 } = req.query;
+      const room = await chatService.findPrivateRoom(user1, user2);
+      res.json(room);
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+};
+
+
+exports.getPrivateRoomsForUser = async (req, res) => {
+  try {
+      const userId = req.user._id;
+      const rooms = await chatService.findPrivateRoomsForUser(userId);
+      res.json(rooms);
+      publishEvent('privateRoomsRetrieved', JSON.stringify(rooms));
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+};
+
+
+

@@ -123,17 +123,15 @@
         </div>
         <div class="sections-container">
             <div class="chat-section" id="allUsers">
-                <div class="section-title">All Users : </div>
+                <div class="section-title">All Users</div>
                 <!-- All users will be listed here -->
             </div>
-
             <div class="chat-section" id="publicRooms">
-                <div class="section-title">Public Rooms : </div>
+                <div class="section-title">Public Rooms</div>
                 <!-- Public rooms will be listed here -->
             </div>
-
             <div class="chat-section" id="privateRooms">
-                <div class="section-title">Private Rooms : </div>
+                <div class="section-title">Private Rooms</div>
                 <!-- Private rooms will be listed here -->
             </div>
         </div>
@@ -181,7 +179,7 @@
                 const div = document.createElement('div');
                 div.className = 'user';
                 div.textContent = user.username;
-                div.onclick = () => createPrivateRoom(user._id);
+                div.onclick = () => createPrivateRoom(user._id, user.username);
                 allUsers.appendChild(div);
             });
         }
@@ -207,23 +205,44 @@
             }
         }
 
-        async function createPrivateRoom(userId) {
+        async function createPrivateRoom(userId, username) {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${baseURL}/api/chat/create-room`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                },
-                body: JSON.stringify({ name: `Private Room with ${userId}`, isPrivate: true, userId })
+            const currentUserId = decodeToken(token).userId;
+
+            // Check if a private room already exists
+            const response = await fetch(`${baseURL}/api/chat/private-room?user1=${currentUserId}&user2=${userId}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
             });
 
-            if (response.ok) {
-                fetchChatRooms();
+            const existingRoom = await response.json();
+
+            if (existingRoom) {
+                // Navigate to the existing private room
+                window.location.href = `messages.html?roomId=${existingRoom._id}&roomName=Private Room with ${username}`;
             } else {
-                const data = await response.json();
-                alert(data.error);
+                // Create a new private room if it doesn't exist
+                const createResponse = await fetch(`${baseURL}/api/chat/create-room`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ name: `Private Room with ${username}`, isPrivate: true, userId })
+                });
+
+                if (createResponse.ok) {
+                    fetchChatRooms();
+                } else {
+                    const data = await createResponse.json();
+                    alert(data.error);
+                }
             }
+        }
+
+        function decodeToken(token) {
+            const payload = token.split('.')[1];
+            const decoded = atob(payload);
+            return JSON.parse(decoded);
         }
 
         function signOut() {

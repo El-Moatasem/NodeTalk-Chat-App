@@ -20,5 +20,7 @@ router.get('/rooms', auth, chatController.getChatRooms);
 router.post('/edit-message', auth, chatController.editMessage);
 router.post('/delete-message', auth, chatController.deleteMessage);
 router.get('/search-messages', auth, chatController.searchMessages);
+router.get('/private-room', auth, chatController.getPrivateRoom);
+router.get('/private-rooms', auth, chatController.getPrivateRoomsForUser);
 
 module.exports = router;

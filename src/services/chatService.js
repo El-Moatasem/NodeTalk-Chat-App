@@ -52,6 +52,35 @@ const getChatRooms = async () => {
   return chatRooms;
 };
 
+const getPrivateRooms = async (userId) => {
+  const privateRooms = await ChatRoom.find({ isPrivate: true, members: userId })
+      .populate('members', 'username')
+      .exec();
+  return privateRooms;
+};
+
+const findPrivateRoom = async (user1, user2) => {
+  const room = await ChatRoom.findOne({
+      isPrivate: true,
+      $or: [
+          { members: [user1, user2] },
+          { members: [user2, user1] }
+      ]
+  });
+  return room;
+};
+
+const findPrivateRoomsForUser = async (userId) => {
+  const rooms = await ChatRoom.find({
+      isPrivate: true,
+      members: userId
+  }).populate('members', 'username');
+  return rooms;
+};
+
+
+
+
 const editMessage = async (messageId, userId, newContent) => {
   const message = await Message.findById(messageId);
 
@@ -87,6 +116,9 @@ const deleteMessage = async (messageId, userId) => {
 };
 
 
+
+
+
 module.exports = {
   createRoom,
   joinRoom,
@@ -96,4 +128,7 @@ module.exports = {
   editMessage,
   deleteMessage,
   getChatRooms,
+  getPrivateRooms, 
+  findPrivateRoom,
+  findPrivateRoomsForUser,
 };
