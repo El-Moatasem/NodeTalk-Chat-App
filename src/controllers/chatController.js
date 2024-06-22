@@ -42,13 +42,7 @@ exports.sendMessage = async (req, res) => {
     const { roomId, content } = req.body;
     const sender = req.user._id;
 
-    if (!mongoose.Types.ObjectId.isValid(roomId)) {
-      return res.status(400).json({ error: 'Invalid roomId' });
-    }
-
-    const message = new Message({ roomId, content, sender: mongoose.Types.ObjectId(sender) });
-    await message.save();
-    const populatedMessage = await message.populate('sender', 'username').execPopulate();
+    const populatedMessage = await chatService.sendMessage(roomId, sender, content);
     res.status(201).json(populatedMessage);
     publishEvent('messageSent', JSON.stringify(populatedMessage));
   } catch (error) {
