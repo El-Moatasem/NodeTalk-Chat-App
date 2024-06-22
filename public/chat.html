@@ -110,9 +110,11 @@
     </div>
 
     <script>
+        const baseURL = window.location.origin;
+        console.log("baseURL:", baseURL)
         async function fetchChatRooms() {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/chat/rooms', {
+            const response = await fetch(`${baseURL}/api/chat/rooms`, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
 
@@ -132,7 +134,7 @@
             const roomName = document.getElementById('roomName').value;
             const token = localStorage.getItem('token');
 
-            const response = await fetch('http://localhost:5000/api/chat/create-room', {
+            const response = await fetch(`${baseURL}/api/chat/create-room`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
