@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Rooms - NodeTalk</title>
+    <title>Messages - NodeTalk</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -37,6 +37,10 @@
         .form-group { 
             margin-bottom: 15px; 
             display: flex;
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 10px 0;
         }
         .form-group input { 
             flex: 1; 
@@ -58,7 +62,7 @@
         .form-group button:hover {
             background-color: #45a049;
         }
-        .chat-rooms { 
+        .messages { 
             margin-top: 20px; 
             max-height: 300px;
             overflow-y: auto;
@@ -66,31 +70,27 @@
             padding: 10px;
             border-radius: 4px;
         }
-        .chat-room { 
+        .message { 
             padding: 10px; 
             border: 1px solid #ddd; 
             margin-bottom: 10px; 
             border-radius: 4px;
-            cursor: pointer;
         }
-        .chat-room:hover {
-            background-color: #f0f0f0;
-        }
-        .sign-out {
+        .back-to-chat {
             text-align: right;
             margin-bottom: 20px;
         }
-        .sign-out button {
+        .back-to-chat button {
             padding: 10px; 
-            background-color: #f44336; 
+            background-color: #4CAF50; 
             color: white; 
             border: none; 
             cursor: pointer; 
             border-radius: 4px;
             font-size: 16px;
         }
-        .sign-out button:hover {
-            background-color: #e53935;
+        .back-to-chat button:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
@@ -99,69 +99,73 @@
         <div class="logo">
             <h1>NodeTalk</h1>
         </div>
-        <div class="sign-out">
-            <button onclick="signOut()">Sign Out</button>
+        <div class="back-to-chat">
+            <button onclick="backToChatRooms()">Back to Chat Rooms</button>
         </div>
-        <h2>Chat Rooms</h2>
+        <h2 id="roomNameHeader">Messages</h2>
+        <div class="messages" id="messages">
+            <!-- Messages will be listed here -->
+        </div>
         <div class="form-group">
-            <input type="text" id="roomName" placeholder="New room name">
-            <button onclick="createRoom()">Create Room</button>
-        </div>
-        <div class="chat-rooms" id="chatRooms">
-            <!-- Chat rooms will be listed here -->
+            <input type="text" id="messageInput" placeholder="Type a message...">
+            <button onclick="sendMessage()">Send</button>
         </div>
     </div>
 
     <script>
         const baseURL = window.location.origin;
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('roomId');
+        const roomName = urlParams.get('roomName');
+        document.getElementById('roomNameHeader').textContent = `Messages in ${roomName}`;
 
-        async function fetchChatRooms() {
+        async function fetchMessages() {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${baseURL}/api/chat/rooms`, {
+            const response = await fetch(`${baseURL}/api/chat/messages/${roomId}`, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
 
             const data = await response.json();
-            const chatRooms = document.getElementById('chatRooms');
-            chatRooms.innerHTML = '';
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = '';
 
-            data.forEach(room => {
+            data.forEach(message => {
                 const div = document.createElement('div');
-                div.className = 'chat-room';
-                div.textContent = room.name;
-                div.onclick = () => window.location.href = `messages.html?roomId=${room._id}&roomName=${room.name}`;
-                chatRooms.appendChild(div);
+                div.className = 'message';
+                div.textContent = `${message.sender.username}: ${message.content}`;
+                messagesDiv.appendChild(div);
             });
         }
 
-        async function createRoom() {
-            const roomName = document.getElementById('roomName').value;
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const content = messageInput.value;
             const token = localStorage.getItem('token');
 
-            const response = await fetch(`${baseURL}/api/chat/create-room`, {
+            const response = await fetch(`${baseURL}/api/chat/send-message`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
                 },
-                body: JSON.stringify({ name: roomName, isPrivate: false })
+                body: JSON.stringify({ roomId, content })
             });
 
             if (response.ok) {
-                fetchChatRooms();
+                fetchMessages();
+                messageInput.value = '';
             } else {
                 const data = await response.json();
                 alert(data.error);
             }
         }
 
-        function signOut() {
-            localStorage.removeItem('token');
-            window.location.href = 'login.html';
+        function backToChatRooms() {
+            window.location.href = 'chat.html';
         }
 
-        // Fetch chat rooms when the page loads
-        window.onload = fetchChatRooms;
+        // Fetch messages when the page loads
+        window.onload = fetchMessages;
     </script>
 </body>
 </html>
