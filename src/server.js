@@ -1,4 +1,5 @@
 // src/server.js
+const express = require('express'); // Add this line
 const app = require('./app');
 const http = require('http');
 const socketIO = require('socket.io');
