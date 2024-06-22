@@ -102,7 +102,7 @@
         <div class="back-to-chat">
             <button onclick="backToChatRooms()">Back to Chat Rooms</button>
         </div>
-        <h2 id="roomNameHeader">Messages</h2>
+        <h2 id="roomNameHeader">Messages in Testing</h2>
         <div class="messages" id="messages">
             <!-- Messages will be listed here -->
         </div>
@@ -155,11 +155,21 @@
             const messageInput = document.getElementById('messageInput');
             const content = messageInput.value;
             const token = localStorage.getItem('token');
-            const user = JSON.parse(atob(token.split('.')[1])); // decode token to get user info
+            const user = decodeToken(token); // Use decodeToken function to extract user info
 
-            socket.emit('sendMessage', { roomId, content, sender: user.id });
+            console.log('Token:', token);
+            console.log('Content:', content);
+            console.log('User ID:', user.userId);
+
+            socket.emit('sendMessage', { roomId, content, sender: user.userId });
 
             messageInput.value = '';
+        }
+
+        function decodeToken(token) {
+            const payload = token.split('.')[1];
+            const decoded = atob(payload);
+            return JSON.parse(decoded);
         }
 
         function backToChatRooms() {

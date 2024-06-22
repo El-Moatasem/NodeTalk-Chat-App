@@ -5,7 +5,7 @@ const http = require('http');
 const socketIO = require('socket.io');
 const path = require('path');
 const mongoose = require('mongoose');
-const Message = require('./models/message'); // Assuming you have a Message model
+const Message = require('./models/message'); // Import your Message model
 
 const server = http.createServer(app);
 const io = socketIO(server);
@@ -24,15 +24,20 @@ io.on('connection', (socket) => {
     });
 
     socket.on('sendMessage', async ({ roomId, content, sender }) => {
-        const message = new Message({ roomId, content, sender });
-        await message.save();
+        console.log('Received message data:', { roomId, content, sender });
 
-        io.to(roomId).emit('message', {
-            sender,
-            content,
-            roomId,
-            timestamp: message.timestamp
-        });
+        const message = new Message({ roomId, content, sender });
+        try {
+            await message.save();
+            io.to(roomId).emit('message', {
+                sender,
+                content,
+                roomId,
+                timestamp: message.timestamp
+            });
+        } catch (error) {
+            console.error('Error saving message:', error);
+        }
     });
 
     socket.on('disconnect', () => {
