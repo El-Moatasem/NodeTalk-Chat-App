@@ -126,6 +126,25 @@
         .search-group button:hover {
             background-color: #45a049;
         }
+        .edit-btn, .delete-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        .delete-btn {
+            background-color: #f44336;
+        }
+        .edit-btn:hover {
+            background-color: #45a049;
+        }
+        .delete-btn:hover {
+            background-color: #e53935;
+        }
     </style>
 </head>
 <body>
@@ -188,8 +207,8 @@
             div.innerHTML = `
                 <span>${message.sender.username}: ${message.content}</span>
                 <div class="actions">
-                    <button onclick="editMessage('${message._id}', '${message.content}')">Edit</button>
-                    <button onclick="deleteMessage('${message._id}')">Delete</button>
+                    <button class="edit-btn" onclick="editMessage('${message._id}', '${message.content}')">Edit</button>
+                    <button class="delete-btn" onclick="deleteMessage('${message._id}')">Delete</button>
                 </div>
             `;
             messagesDiv.appendChild(div);
@@ -273,6 +292,10 @@
 
         async function searchMessages() {
             const keyword = document.getElementById('searchInput').value;
+            if (keyword.trim() === '') {
+                fetchMessages();
+                return;
+            }
             const token = localStorage.getItem('token');
             const response = await fetch(`${baseURL}/api/chat/search-messages?roomId=${roomId}&keyword=${keyword}`, {
                 headers: { 'Authorization': 'Bearer ' + token }
