@@ -2,11 +2,12 @@
 const ChatRoom = require('../models/chatRoom');
 const Message = require('../models/message');
 
-const createRoom = async (name, isPrivate) => {
-  const chatRoom = new ChatRoom({ name, isPrivate });
+const createRoom = async (name, isPrivate, members = []) => {
+  const chatRoom = new ChatRoom({ name, isPrivate, members });
   await chatRoom.save();
   return chatRoom;
 };
+
 
 const joinRoom = async (roomId, userId) => {
   const chatRoom = await ChatRoom.findById(roomId);
@@ -52,6 +53,8 @@ const getChatRooms = async () => {
   return chatRooms;
 };
 
+//==================================================================================================
+
 const getPrivateRooms = async (userId) => {
   const privateRooms = await ChatRoom.find({ isPrivate: true, members: userId })
       .populate('members', 'username')
@@ -70,6 +73,11 @@ const findPrivateRoom = async (user1, user2) => {
   return room;
 };
 
+const getPublicRooms = async () => {
+  const rooms = await ChatRoom.find({ isPrivate: false });
+  return rooms;
+};
+
 const findPrivateRoomsForUser = async (userId) => {
   const rooms = await ChatRoom.find({
       isPrivate: true,
@@ -78,7 +86,7 @@ const findPrivateRoomsForUser = async (userId) => {
   return rooms;
 };
 
-
+//==================================================================================================
 
 
 const editMessage = async (messageId, userId, newContent) => {
@@ -116,7 +124,7 @@ const deleteMessage = async (messageId, userId) => {
 };
 
 
-
+//==================================================================================================
 
 
 module.exports = {
@@ -130,5 +138,6 @@ module.exports = {
   getChatRooms,
   getPrivateRooms, 
   findPrivateRoom,
+  getPublicRooms,
   findPrivateRoomsForUser,
 };

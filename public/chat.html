@@ -141,30 +141,55 @@
         const baseURL = window.location.origin;
 
         async function fetchChatRooms() {
+            console.log("fetchChatRooms");
             const token = localStorage.getItem('token');
-            const response = await fetch(`${baseURL}/api/chat/rooms`, {
+
+            // Fetch public rooms
+            const publicResponse = await fetch(`${baseURL}/api/chat/public-rooms`, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
+            const publicRoomsData = await publicResponse.json();
+            console.log("publicRoomsData:  ", publicRoomsData);
 
-            const data = await response.json();
+            // Fetch private rooms for the current user
+            const privateResponse = await fetch(`${baseURL}/api/chat/private-rooms`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const privateRoomsData = await privateResponse.json();
+            console.log("privateRoomsData:  ", privateRoomsData);
+
             const publicRooms = document.getElementById('publicRooms');
             const privateRooms = document.getElementById('privateRooms');
             publicRooms.innerHTML = '<div class="section-title">Public Rooms</div>';
             privateRooms.innerHTML = '<div class="section-title">Private Rooms</div>';
 
-            data.forEach(room => {
+            // Populate public rooms
+            publicRoomsData.forEach(room => {
                 const div = document.createElement('div');
                 div.className = 'chat-room';
                 div.textContent = room.name;
-                div.onclick = () => window.location.href = `messages.html?roomId=${room._id}&roomName=${room.name}`;
-                if (room.isPrivate) {
-                    privateRooms.appendChild(div);
-                } else {
+                    div.onclick = () => window.location.href = `messages.html?roomId=${room._id}&roomName=${room.name}`;
                     publicRooms.appendChild(div);
-                }
-            });
+                });
+
+                // Populate private rooms
+                privateRoomsData.forEach(room => {
+                    const otherMember = room.members.find(member => member._id !== decodeToken(token).userId);
+                    
+                    if (otherMember) {
+                        const div = document.createElement('div');
+                        div.className = 'chat-room';
+                        div.textContent = `Private Room with ${otherMember.username}`;
+                        div.onclick = () => window.location.href = `messages.html?roomId=${room._id}&roomName=Private Room with ${otherMember.username}`;
+                        privateRooms.appendChild(div);
+                    } else {
+                        console.error("No other member found in the private room", room);
+                    }
+                });
         }
 
+
+            
         async function fetchUsers() {
             const token = localStorage.getItem('token');
             const response = await fetch(`${baseURL}/api/users`, {
@@ -205,6 +230,10 @@
             }
         }
 
+
+
+
+
         async function createPrivateRoom(userId, username) {
             const token = localStorage.getItem('token');
             const currentUserId = decodeToken(token).userId;
@@ -227,7 +256,13 @@
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token
                     },
-                    body: JSON.stringify({ name: `Private Room with ${username}`, isPrivate: true, userId })
+                    body: JSON.stringify({ name: `Private Room with ${username}`, isPrivate: true, members: [currentUserId, userId] })
+                });
+
+                console.log('Create room body:', {
+                    name: `Private Room with ${username}`,
+                    isPrivate: true,
+                    members: [currentUserId, userId]
                 });
 
                 if (createResponse.ok) {
