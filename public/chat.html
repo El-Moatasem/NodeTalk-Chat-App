@@ -73,12 +73,31 @@
         .chat-room strong {
             flex: 1;
         }
+        .sign-out {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .sign-out button {
+            padding: 10px; 
+            background-color: #f44336; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .sign-out button:hover {
+            background-color: #e53935;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="logo">
             <h1>NodeTalk</h1>
+        </div>
+        <div class="sign-out">
+            <button onclick="signOut()">Sign Out</button>
         </div>
         <h2>Chat Rooms</h2>
         <div class="form-group">
@@ -128,6 +147,11 @@
                 const data = await response.json();
                 alert(data.error);
             }
+        }
+
+        function signOut() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
         }
 
         // Fetch chat rooms when the page loads
