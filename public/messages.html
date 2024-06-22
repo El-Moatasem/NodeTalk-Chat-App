@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - NodeTalk</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .container { 
+            width: 600px; 
+            padding: 20px; 
+            background-color: white; 
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .logo { 
+            text-align: center; 
+            margin-bottom: 20px; 
+        }
+        .logo h1 {
+            margin: 0;
+            font-size: 2em;
+            color: #4CAF50;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-group { 
+            margin-bottom: 15px; 
+            display: flex;
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 10px 0;
+        }
+        .form-group input { 
+            flex: 1; 
+            padding: 10px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px 0 0 4px;
+            border-right: none;
+            box-sizing: border-box;
+        }
+        .form-group button { 
+            padding: 10px; 
+            background-color: #4CAF50; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 0 4px 4px 0;
+            font-size: 16px;
+        }
+        .form-group button:hover {
+            background-color: #45a049;
+        }
+        .messages { 
+            margin-top: 20px; 
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .message { 
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            margin-bottom: 10px; 
+            border-radius: 4px;
+        }
+        .back-to-chat {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .back-to-chat button {
+            padding: 10px; 
+            background-color: #4CAF50; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .back-to-chat button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>NodeTalk</h1>
+        </div>
+        <div class="back-to-chat">
+            <button onclick="backToChatRooms()">Back to Chat Rooms</button>
+        </div>
+        <h2 id="roomNameHeader">Messages in Testing</h2>
+        <div class="messages" id="messages">
+            <!-- Messages will be listed here -->
+        </div>
+        <div class="form-group">
+            <input type="text" id="messageInput" placeholder="Type a message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const baseURL = window.location.origin;
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('roomId');
+        const roomName = urlParams.get('roomName');
+        document.getElementById('roomNameHeader').textContent = `Messages in ${roomName}`;
+
+        const socket = io(baseURL);
+
+        socket.emit('joinRoom', { roomId });
+
+        socket.on('message', message => {
+            displayMessage(message);
+        });
+
+        async function fetchMessages() {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${baseURL}/api/chat/messages/${roomId}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            const data = await response.json();
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = '';
+
+            data.forEach(message => {
+                displayMessage(message);
+            });
+        }
+
+        function displayMessage(message) {
+            const messagesDiv = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = 'message';
+            div.textContent = `${message.sender.username}: ${message.content}`;
+            messagesDiv.appendChild(div);
+        }
+
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const content = messageInput.value;
+            const token = localStorage.getItem('token');
+            const user = decodeToken(token); // Use decodeToken function to extract user info
+
+            console.log('Token:', token);
+            console.log('Content:', content);
+            console.log('User ID:', user.userId);
+
+            socket.emit('sendMessage', { roomId, content, sender: user.userId });
+
+            messageInput.value = '';
+        }
+
+        function decodeToken(token) {
+            const payload = token.split('.')[1];
+            const decoded = atob(payload);
+            return JSON.parse(decoded);
+        }
+
+        function backToChatRooms() {
+            socket.emit('leaveRoom', { roomId });
+            window.location.href = 'chat.html';
+        }
+
+        function signOut() {
+            localStorage.removeItem('token');
+            socket.emit('leaveRoom', { roomId });
+            window.location.href = 'login.html';
+        }
+
+        // Fetch messages when the page loads
+        window.onload = fetchMessages;
+    </script>
+</body>
+</html>

@@ -5,21 +5,42 @@ const http = require('http');
 const socketIO = require('socket.io');
 const path = require('path');
 const mongoose = require('mongoose');
+const Message = require('./models/message'); // Import your Message model
 
 const server = http.createServer(app);
 const io = socketIO(server);
 
 io.on('connection', (socket) => {
     console.log('New client connected');
+    
     socket.on('joinRoom', ({ roomId }) => {
         socket.join(roomId);
+        console.log(`User joined room ${roomId}`);
     });
+    
     socket.on('leaveRoom', ({ roomId }) => {
         socket.leave(roomId);
+        console.log(`User left room ${roomId}`);
     });
-    socket.on('sendMessage', async ({ roomId, message }) => {
-        io.to(roomId).emit('message', message);
+
+    socket.on('sendMessage', async ({ roomId, content, sender }) => {
+        console.log('Received message data:', { roomId, content, sender });
+
+        const message = new Message({ roomId, content, sender });
+        try {
+            await message.save();
+            const populatedMessage = await message.populate('sender', 'username').execPopulate();
+            io.to(roomId).emit('message', {
+                sender: populatedMessage.sender,
+                content: populatedMessage.content,
+                roomId: populatedMessage.roomId,
+                timestamp: populatedMessage.timestamp
+            });
+        } catch (error) {
+            console.error('Error saving message:', error);
+        }
     });
+
     socket.on('disconnect', () => {
         console.log('Client disconnected');
     });

@@ -60,18 +60,21 @@
         }
         .chat-rooms { 
             margin-top: 20px; 
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
         }
         .chat-room { 
             padding: 10px; 
             border: 1px solid #ddd; 
             margin-bottom: 10px; 
             border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            cursor: pointer;
         }
-        .chat-room strong {
-            flex: 1;
+        .chat-room:hover {
+            background-color: #f0f0f0;
         }
         .sign-out {
             text-align: right;
@@ -111,7 +114,7 @@
 
     <script>
         const baseURL = window.location.origin;
-        console.log("baseURL:", baseURL)
+
         async function fetchChatRooms() {
             const token = localStorage.getItem('token');
             const response = await fetch(`${baseURL}/api/chat/rooms`, {
@@ -125,7 +128,8 @@
             data.forEach(room => {
                 const div = document.createElement('div');
                 div.className = 'chat-room';
-                div.innerHTML = `<strong>${room.name}</strong>`;
+                div.textContent = room.name;
+                div.onclick = () => window.location.href = `messages.html?roomId=${room._id}&roomName=${room.name}`;
                 chatRooms.appendChild(div);
             });
         }
