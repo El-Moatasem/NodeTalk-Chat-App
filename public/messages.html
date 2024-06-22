@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -76,6 +77,25 @@
             margin-bottom: 10px; 
             border-radius: 4px;
             position: relative;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        .message.user {
+            background-color: #e0f7fa;
+            align-self: flex-start;
+            margin-left: auto;
+        }
+        .message.other {
+            background-color: #ffebee;
+            align-self: flex-end;
+            margin-right: auto;
+        }
+        .message .username {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .message .content {
+            margin-top: 5px;
         }
         .message .actions {
             position: absolute;
@@ -110,21 +130,8 @@
             flex: 1;
             padding: 10px;
             border: 1px solid #ccc;
-            border-radius: 4px 0 0 4px;
-            border-right: none;
+            border-radius: 4px;
             box-sizing: border-box;
-        }
-        .search-group button {
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 0 4px 4px 0;
-            font-size: 16px;
-        }
-        .search-group button:hover {
-            background-color: #45a049;
         }
         .edit-btn, .delete-btn {
             background-color: #4CAF50;
@@ -202,13 +209,16 @@
         function displayMessage(message) {
             const messagesDiv = document.getElementById('messages');
             const div = document.createElement('div');
-            div.className = 'message';
+            div.className = `message ${message.sender._id === getUserId() ? 'user' : 'other'}`;
             div.innerHTML = `
-                <span>${message.sender.username}: ${message.content}</span>
-                <div class="actions">
-                    <button class="edit-btn" onclick="editMessage('${message._id}', '${message.content}')">Edit</button>
-                    <button class="delete-btn" onclick="deleteMessage('${message._id}')">Delete</button>
-                </div>
+                <div class="username">${message.sender.username}</div>
+                <div class="content">${message.content}</div>
+                ${message.sender._id === getUserId() ? `
+                    <div class="actions">
+                        <button class="edit-btn" onclick="editMessage('${message._id}', '${message.content}')">Edit</button>
+                        <button class="delete-btn" onclick="deleteMessage('${message._id}')">Delete</button>
+                    </div>
+                ` : ''}
             `;
             messagesDiv.appendChild(div);
         }
@@ -232,6 +242,12 @@
             const payload = token.split('.')[1];
             const decoded = atob(payload);
             return JSON.parse(decoded);
+        }
+
+        function getUserId() {
+            const token = localStorage.getItem('token');
+            const user = decodeToken(token);
+            return user.userId;
         }
 
         function backToChatRooms() {
