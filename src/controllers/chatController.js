@@ -6,8 +6,8 @@ const { publishEvent } = require('../services/eventBus');
 
 exports.createRoom = async (req, res) => {
   try {
-    const { name, isPrivate } = req.body;
-    const chatRoom = await chatService.createRoom(name, isPrivate);
+    const { name, isPrivate, members } = req.body;
+    const chatRoom = await chatService.createRoom(name, isPrivate, members);
     res.status(201).json(chatRoom);
     publishEvent('chatRoomCreated', JSON.stringify(chatRoom));
   } catch (error) {
@@ -103,3 +103,51 @@ exports.getChatRooms = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.getPublicRooms = async (req, res) => {
+  try {
+      const rooms = await chatService.getPublicRooms();
+      res.json(rooms);
+      publishEvent('publicRoomsRetrieved', JSON.stringify(rooms));
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getPrivateRoomsForUser = async (req, res) => {
+  try {
+      const userId = req.user._id;
+      const rooms = await chatService.getPrivateRoomsForUser(userId);
+      res.json(rooms);
+      publishEvent('privateRoomsRetrieved', JSON.stringify(rooms));
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+};
+
+
+
+exports.getPrivateRoom = async (req, res) => {
+  try {
+      const { user1, user2 } = req.query;
+      const room = await chatService.findPrivateRoom(user1, user2);
+      res.json(room);
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+};
+
+
+exports.getPrivateRoomsForUser = async (req, res) => {
+  try {
+      const userId = req.user._id;
+      const rooms = await chatService.findPrivateRoomsForUser(userId);
+      res.json(rooms);
+      publishEvent('privateRoomsRetrieved', JSON.stringify(rooms));
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+};
+
+
+
