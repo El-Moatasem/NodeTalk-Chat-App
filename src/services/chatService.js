@@ -52,11 +52,30 @@ const getChatRooms = async () => {
   return chatRooms;
 };
 
+const editMessage = async (messageId, userId, newContent) => {
+  const message = await Message.findById(messageId);
+
+  if (!message) {
+    throw new Error('Message not found');
+  }
+
+  if (!message.sender.equals(userId)) {
+    throw new Error('You can only edit your own messages');
+  }
+
+  message.editHistory.push({ content: message.content });
+  message.content = newContent;
+  await message.save();
+
+  return message;
+};
+
 module.exports = {
   createRoom,
   joinRoom,
   leaveRoom,
   sendMessage,
   getMessages,
+  editMessage,
   getChatRooms,
 };

@@ -63,20 +63,7 @@ exports.getMessages = async (req, res) => {
 exports.editMessage = async (req, res) => {
   try {
     const { messageId, newContent } = req.body;
-    const message = await Message.findById(messageId);
-
-    if (!message) {
-      return res.status(404).json({ error: 'Message not found' });
-    }
-
-    if (!message.sender.equals(req.user._id)) {
-      return res.status(403).json({ error: 'You can only edit your own messages' });
-    }
-
-    message.editHistory.push({ content: message.content });
-    message.content = newContent;
-    await message.save();
-
+    const message = await chatService.editMessage(messageId, req.user._id, newContent);
     res.json(message);
     publishEvent('messageEdited', JSON.stringify(message));
   } catch (error) {
