@@ -55,6 +55,7 @@ exports.getMessages = async (req, res) => {
     const { roomId } = req.params;
     const messages = await Message.find({ roomId: mongoose.Types.ObjectId(roomId) }).populate('sender', 'username');
     res.json(messages);
+    publishEvent('messagesFetched', JSON.stringify({ roomId, messages })); // Added event
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -71,8 +72,6 @@ exports.editMessage = async (req, res) => {
   }
 };
 
-
-
 exports.deleteMessage = async (req, res) => {
   try {
     const { messageId } = req.body;
@@ -84,13 +83,12 @@ exports.deleteMessage = async (req, res) => {
   }
 };
 
-
-
 exports.searchMessages = async (req, res) => {
   try {
     const { roomId, keyword } = req.query;
     const messages = await Message.find({ roomId: mongoose.Types.ObjectId(roomId), content: new RegExp(keyword, 'i') }).populate('sender', 'username');
     res.json(messages);
+    publishEvent('messagesSearched', JSON.stringify({ roomId, keyword, messages })); // Added event
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -100,6 +98,7 @@ exports.getChatRooms = async (req, res) => {
   try {
     const chatRooms = await chatService.getChatRooms();
     res.json(chatRooms);
+    publishEvent('chatRoomsFetched', JSON.stringify(chatRooms)); // Added event
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
