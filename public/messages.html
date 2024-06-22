@@ -157,8 +157,7 @@
         </div>
         <h2 id="roomNameHeader">Messages in Testing</h2>
         <div class="search-group">
-            <input type="text" id="searchInput" placeholder="Search messages...">
-            <button onclick="searchMessages()">Search</button>
+            <input type="text" id="searchInput" placeholder="Search messages..." oninput="searchMessages()">
         </div>
         <div class="messages" id="messages">
             <!-- Messages will be listed here -->
@@ -292,12 +291,12 @@
 
         async function searchMessages() {
             const keyword = document.getElementById('searchInput').value;
-            if (keyword.trim() === '') {
-                fetchMessages();
-                return;
-            }
             const token = localStorage.getItem('token');
-            const response = await fetch(`${baseURL}/api/chat/search-messages?roomId=${roomId}&keyword=${keyword}`, {
+            let url = `${baseURL}/api/chat/messages/${roomId}`;
+            if (keyword.trim() !== '') {
+                url = `${baseURL}/api/chat/search-messages?roomId=${roomId}&keyword=${keyword}`;
+            }
+            const response = await fetch(url, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
 
