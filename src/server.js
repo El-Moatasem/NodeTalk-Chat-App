@@ -29,11 +29,12 @@ io.on('connection', (socket) => {
         const message = new Message({ roomId, content, sender });
         try {
             await message.save();
+            const populatedMessage = await message.populate('sender', 'username').execPopulate();
             io.to(roomId).emit('message', {
-                sender,
-                content,
-                roomId,
-                timestamp: message.timestamp
+                sender: populatedMessage.sender,
+                content: populatedMessage.content,
+                roomId: populatedMessage.roomId,
+                timestamp: populatedMessage.timestamp
             });
         } catch (error) {
             console.error('Error saving message:', error);

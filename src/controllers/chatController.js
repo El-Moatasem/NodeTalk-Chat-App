@@ -1,5 +1,7 @@
 // src/controllers/chatController.js
 const chatService = require('../services/chatService');
+const mongoose = require('mongoose');
+const Message = require('../models/message');
 
 exports.createRoom = async (req, res) => {
   try {
@@ -34,8 +36,16 @@ exports.leaveRoom = async (req, res) => {
 exports.sendMessage = async (req, res) => {
   try {
     const { roomId, content } = req.body;
-    const message = await chatService.sendMessage(roomId, req.user._id, content);
-    res.status(201).json(message);
+    const sender = req.user._id;
+
+    if (!mongoose.Types.ObjectId.isValid(roomId)) {
+      return res.status(400).json({ error: 'Invalid roomId' });
+    }
+
+    const message = new Message({ roomId, content, sender: mongoose.Types.ObjectId(sender) });
+    await message.save();
+    const populatedMessage = await message.populate('sender', 'username').execPopulate();
+    res.status(201).json(populatedMessage);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -44,7 +54,7 @@ exports.sendMessage = async (req, res) => {
 exports.getMessages = async (req, res) => {
   try {
     const { roomId } = req.params;
-    const messages = await chatService.getMessages(roomId);
+    const messages = await Message.find({ roomId: mongoose.Types.ObjectId(roomId) }).populate('sender', 'username');
     res.json(messages);
   } catch (error) {
     res.status(500).json({ error: error.message });
