@@ -4,6 +4,7 @@ const cors = require('cors');
 const connectDB = require('./utils/database');
 const authRoutes = require('./routes/authRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const userRoutes = require('./routes/userRoutes'); // Add this line
 const path = require('path');
 const mongoose = require('mongoose');
 const app = express();
@@ -34,6 +35,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/users', userRoutes); // Add this line
 
 // Error handling middleware
 app.use((err, req, res, next) => {
