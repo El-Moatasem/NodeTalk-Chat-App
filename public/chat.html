@@ -239,10 +239,11 @@
             }
         }
 
-
         async function createPrivateRoom(userIds, usernames) {
             const token = localStorage.getItem('token');
             const currentUserId = decodeToken(token).userId;
+
+            console.log("usernames: ", usernames);
 
             const members = [...userIds, currentUserId];
             const names = [...usernames, decodeToken(token).username].join(', ');
@@ -253,7 +254,7 @@
                 // Check if a private group already exists
                 const response = await fetch(`${baseURL}/api/chat/private-room`, {
                     method: 'POST',
-                    headers: {
+                    headers: { 
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token
                     },
@@ -270,7 +271,7 @@
                     // Create a new private group if it doesn't exist
                     const createResponse = await fetch(`${baseURL}/api/chat/create-room`, {
                         method: 'POST',
-                        headers: {
+                        headers: { 
                             'Content-Type': 'application/json',
                             'Authorization': 'Bearer ' + token
                         },
@@ -278,8 +279,13 @@
                     });
 
                     if (createResponse.ok) {
-                        console.log("Room created successfully");
-                        fetchChatRooms();
+                        const newRoom = await createResponse.json();
+                        console.log("New room created:", newRoom);
+
+                        // Refresh the chat rooms and navigate to the new room
+                        fetchChatRooms().then(() => {
+                            window.location.href = `messages.html?roomId=${newRoom._id}&roomName=Private Group Chat`;
+                        });
                     } else {
                         const data = await createResponse.json();
                         alert(data.error);
@@ -294,9 +300,6 @@
             }
         }
 
-        
-        
-       
         function createGroup() {
             const checkboxes = document.querySelectorAll('#userList input[type="checkbox"]:checked');
             const userIds = Array.from(checkboxes).map(checkbox => checkbox.value);
