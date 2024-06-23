@@ -15,7 +15,11 @@
             background-color: #f4f4f4;
         }
         .container { 
-            width: 600px; 
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            width: 80%;
+            max-width: 1200px;
             padding: 20px; 
             background-color: white; 
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -64,11 +68,12 @@
         }
         .messages { 
             margin-top: 20px; 
-            max-height: 300px;
+            max-height: 500px;
             overflow-y: auto;
             border: 1px solid #ddd;
             padding: 10px;
             border-radius: 4px;
+            width: 100%;
         }
         .message { 
             padding: 10px; 
@@ -156,12 +161,17 @@
         .delete-btn:hover {
             background-color: #e53935;
         }
+        .members-container {
+            display: flex;
+            flex-direction: column;
+            width: 25%;
+            margin-right: 20px;
+        }
         .members { 
-            margin-top: 20px; 
             border: 1px solid #ddd;
             padding: 10px;
             border-radius: 4px;
-            max-height: 300px;
+            max-height: 500px;
             overflow-y: auto;
         }
         .members h3 {
@@ -171,30 +181,36 @@
             padding: 5px;
             border-bottom: 1px solid #ddd;
         }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            width: 75%;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">
-            <h1>NodeTalk</h1>
+        <div class="members-container">
+            <h2 id="roomNameHeader">Messages in Private Group Chat</h2>
+            <div class="members" id="members">
+                <h3>Members:</h3>
+                <!-- Members will be listed here -->
+            </div>
         </div>
-        <div class="back-to-chat">
-            <button onclick="backToChatRooms()">Back to Chat Rooms</button>
-        </div>
-        <h2 id="roomNameHeader">Messages in Private Group Chat</h2>
-        <div class="search-group">
-            <input type="text" id="searchInput" placeholder="Search messages..." oninput="searchMessages()">
-        </div>
-        <div class="messages" id="messages">
-            <!-- Messages will be listed here -->
-        </div>
-        <div class="form-group">
-            <input type="text" id="messageInput" placeholder="Type a message...">
-            <button onclick="sendMessage()">Send</button>
-        </div>
-        <div class="members" id="members">
-            <h3>Members:</h3>
-            <!-- Members will be listed here -->
+        <div class="chat-container">
+            <div class="back-to-chat">
+                <button onclick="backToChatRooms()">Back to Chat Rooms</button>
+            </div>
+            <div class="search-group">
+                <input type="text" id="searchInput" placeholder="Search messages..." oninput="searchMessages()">
+            </div>
+            <div class="messages" id="messages">
+                <!-- Messages will be listed here -->
+            </div>
+            <div class="form-group">
+                <input type="text" id="messageInput" placeholder="Type a message...">
+                <button onclick="sendMessage()">Send</button>
+            </div>
         </div>
     </div>
 
