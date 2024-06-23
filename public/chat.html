@@ -26,12 +26,16 @@
         }
         .logo { 
             text-align: center; 
-            margin-bottom: 20px; 
+            margin-bottom: 10px; 
         }
         .logo h1 {
             margin: 0;
             font-size: 2em;
             color: #4CAF50;
+        }
+        .user-info {
+            margin-bottom: 20px;
+            font-weight: bold;
         }
         h2 {
             text-align: center;
@@ -127,6 +131,7 @@
         <div class="logo">
             <h1>NodeTalk</h1>
         </div>
+        <div id="user-info" class="user-info"></div>
         <div class="sign-out">
             <button onclick="signOut()">Sign Out</button>
         </div>
@@ -155,30 +160,81 @@
     <script>
         const baseURL = window.location.origin;
 
-        async function fetchChatRooms() {
-            console.log("fetchChatRooms");
-            const token = localStorage.getItem('token');
+        function decodeToken(token) {
+            const payload = token.split('.')[1];
+            const decoded = atob(payload);
+            return JSON.parse(decoded);
+        }
 
-            // Fetch public rooms
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            try {
+                const user = decodeToken(token);
+                if (user.exp * 1000 < Date.now()) {
+                    window.location.href = 'login.html';
+                    return null;
+                }
+                return user;
+            } catch (e) {
+                window.location.href = 'login.html';
+                return null;
+            }
+        }
+
+        async function fetchUserDetails(userId) {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${baseURL}/api/users/${userId}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            if (response.ok) {
+                const user = await response.json();
+                return user;
+            } else {
+                console.error('Failed to fetch user details');
+                return null;
+            }
+        }
+
+        async function displayUserInfo() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            const decodedToken = decodeToken(token);
+            const userId = decodedToken.userId;
+            const user = await fetchUserDetails(userId);
+
+            if (user) {
+                const userInfoDiv = document.getElementById('user-info');
+                userInfoDiv.innerHTML = `Logged in as: <strong>${user.username}</strong>`;
+            } else {
+                console.error('Could not fetch user details');
+            }
+        }
+
+        async function fetchChatRooms() {
+            const token = localStorage.getItem('token');
+            if (!checkAuth()) return;
+
             const publicResponse = await fetch(`${baseURL}/api/chat/public-rooms`, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
             const publicRoomsData = await publicResponse.json();
-            console.log("publicRoomsData: ", publicRoomsData);
 
-            // Fetch private rooms for the current user
             const privateResponse = await fetch(`${baseURL}/api/chat/private-rooms`, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
             const privateRoomsData = await privateResponse.json();
-            console.log("privateRoomsData: ", privateRoomsData);
 
             const publicRooms = document.getElementById('publicRooms');
             const privateRooms = document.getElementById('privateRooms');
             publicRooms.innerHTML = '<div class="section-title">Public Rooms</div>';
             privateRooms.innerHTML = '<div class="section-title">Private Rooms</div>';
 
-            // Populate public rooms
             publicRoomsData.forEach(room => {
                 const div = document.createElement('div');
                 div.className = 'chat-room';
@@ -187,7 +243,6 @@
                 publicRooms.appendChild(div);
             });
 
-            // Populate private rooms
             privateRoomsData.forEach(room => {
                 const otherMemberNames = room.members.filter(member => member._id !== decodeToken(token).userId).map(member => member.username).join(', ');
                 const div = document.createElement('div');
@@ -200,6 +255,8 @@
 
         async function fetchUsers() {
             const token = localStorage.getItem('token');
+            if (!checkAuth()) return;
+
             const response = await fetch(`${baseURL}/api/users`, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
@@ -221,6 +278,7 @@
         async function createRoom() {
             const roomName = document.getElementById('roomName').value;
             const token = localStorage.getItem('token');
+            if (!checkAuth()) return;
 
             const response = await fetch(`${baseURL}/api/chat/create-room`, {
                 method: 'POST',
@@ -242,16 +300,12 @@
         async function createPrivateRoom(userIds, usernames) {
             const token = localStorage.getItem('token');
             const currentUserId = decodeToken(token).userId;
-
-            console.log("usernames: ", usernames);
+            if (!checkAuth()) return;
 
             const members = [...userIds, currentUserId];
             const names = [...usernames, decodeToken(token).username].join(', ');
-            console.log("names: ", names);
-            console.log("members: ", members);
 
             try {
-                // Check if a private group already exists
                 const response = await fetch(`${baseURL}/api/chat/private-room`, {
                     method: 'POST',
                     headers: { 
@@ -263,12 +317,8 @@
 
                 if (response.ok) {
                     const existingRoom = await response.json();
-                    console.log("existingRoom: ", existingRoom);
-
-                    // Navigate to the existing private group
                     window.location.href = `messages.html?roomId=${existingRoom._id}&roomName=Private Group Chat`;
                 } else if (response.status === 404) {
-                    // Create a new private group if it doesn't exist
                     const createResponse = await fetch(`${baseURL}/api/chat/create-room`, {
                         method: 'POST',
                         headers: { 
@@ -280,9 +330,6 @@
 
                     if (createResponse.ok) {
                         const newRoom = await createResponse.json();
-                        console.log("New room created:", newRoom);
-
-                        // Refresh the chat rooms and navigate to the new room
                         fetchChatRooms().then(() => {
                             window.location.href = `messages.html?roomId=${newRoom._id}&roomName=Private Group Chat`;
                         });
@@ -312,19 +359,13 @@
             }
         }
 
-        function decodeToken(token) {
-            const payload = token.split('.')[1];
-            const decoded = atob(payload);
-            return JSON.parse(decoded);
-        }
-
         function signOut() {
             localStorage.removeItem('token');
             window.location.href = 'login.html';
         }
 
-        // Fetch chat rooms and users when the page loads
         window.onload = () => {
+            displayUserInfo();
             fetchChatRooms();
             fetchUsers();
         };
