@@ -96,6 +96,11 @@
         .message .content {
             margin-top: 5px;
         }
+        .message .date {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 5px;
+        }
         .message .actions {
             position: absolute;
             top: 5px;
@@ -189,6 +194,7 @@
         socket.on('message', message => {
             console.log("socket.on")
             displayMessage(message);
+            scrollToBottom();
         });
 
         async function fetchMessages() {
@@ -205,6 +211,8 @@
                 console.log("fetchMessages")
                 displayMessage(message);
             });
+
+            scrollToBottom();
         }
 
         function displayMessage(message) {
@@ -212,9 +220,11 @@
             const messagesDiv = document.getElementById('messages');
             const div = document.createElement('div');
             div.className = `message ${message.sender._id === getUserId() ? 'user' : 'other'}`;
+            const date = new Date(message.timestamp).toLocaleString();
             div.innerHTML = `
                 <div class="username">${message.sender.username}</div>
                 <div class="content">${message.content}</div>
+                <div class="date">${date}</div>
                 ${message.sender._id === getUserId() ? `
                     <div class="actions">
                         <button class="edit-btn" onclick="editMessage('${message._id}', '${message.content}')">Edit</button>
@@ -325,6 +335,13 @@
             data.forEach(message => {
                 displayMessage(message);
             });
+
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
 
         // Fetch messages when the page loads
