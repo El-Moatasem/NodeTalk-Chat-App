@@ -116,8 +116,11 @@
 
             const data = await response.json();
             if (response.ok) {
+                // Save the token in localStorage
+                localStorage.setItem('token', data.token);
+                
                 alert('Registration successful');
-                window.location.href = 'login.html';
+                window.location.href = 'chat.html';
             } else {
                 alert(data.error);
             }
