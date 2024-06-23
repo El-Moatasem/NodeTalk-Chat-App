@@ -4,16 +4,28 @@ const mongoose = require('mongoose');
 const Message = require('../models/message');
 const { publishEvent } = require('../services/eventBus');
 
+
 exports.createRoom = async (req, res) => {
   try {
     const { name, isPrivate, members } = req.body;
+    if (isPrivate && Array.isArray(members) && members.length > 0) {
+      const existingRoom = await chatService.findPrivateRoomByMembers(members);
+      console.log("existingRoom_existingRoom: ", existingRoom)
+      if (existingRoom) {
+        res.status(200).json(existingRoom);
+        return;
+      }
+    }
     const chatRoom = await chatService.createRoom(name, isPrivate, members);
     res.status(201).json(chatRoom);
     publishEvent('chatRoomCreated', JSON.stringify(chatRoom));
   } catch (error) {
+    console.log("createRoom_error", error);
     res.status(500).json({ error: error.message });
   }
 };
+
+
 
 exports.joinRoom = async (req, res) => {
   try {
@@ -114,40 +126,52 @@ exports.getPublicRooms = async (req, res) => {
   }
 };
 
-exports.getPrivateRoomsForUser = async (req, res) => {
-  try {
-      const userId = req.user._id;
-      const rooms = await chatService.getPrivateRoomsForUser(userId);
-      res.json(rooms);
-      publishEvent('privateRoomsRetrieved', JSON.stringify(rooms));
-  } catch (error) {
-      res.status(500).json({ error: error.message });
-  }
-};
-
-
-
-exports.getPrivateRoom = async (req, res) => {
-  try {
-      const { user1, user2 } = req.query;
-      const room = await chatService.findPrivateRoom(user1, user2);
-      res.json(room);
-  } catch (error) {
-      res.status(500).json({ error: error.message });
-  }
-};
-
 
 exports.getPrivateRoomsForUser = async (req, res) => {
+  console.log("getPrivateRoomsForUser: ")
   try {
       const userId = req.user._id;
       const rooms = await chatService.findPrivateRoomsForUser(userId);
+      // console.log("rooms: ", rooms)
       res.json(rooms);
       publishEvent('privateRoomsRetrieved', JSON.stringify(rooms));
   } catch (error) {
+      
       res.status(500).json({ error: error.message });
   }
 };
 
 
+exports.findPrivateRoomByMembers = async (req, res) => {
+  console.log("findPrivateRoomByMembers: ")
+  try {
+    const { members } = req.body;
+    if (!Array.isArray(members) || members.length === 0) {
+      return res.status(400).json({ error: 'Members array is invalid or empty' });
+    }
 
+    const room = await chatService.findPrivateRoomByMembers(members);
+    if (room) {
+      res.status(200).json(room);
+    } else {
+      res.status(404).json({ message: 'No private room found for the provided members' });
+    }
+
+    publishEvent('privateRoomByMembersFound', JSON.stringify(room));
+  } catch (error) {
+    console.error('findPrivateRoomByMembers_error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+exports.getRoomMembers = async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const members = await chatService.getRoomMembers(roomId);
+    res.json({ members });
+    publishEvent('roomMembersRetrieved', JSON.stringify({ roomId, members }));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

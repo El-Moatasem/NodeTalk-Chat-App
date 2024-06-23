@@ -156,6 +156,21 @@
         .delete-btn:hover {
             background-color: #e53935;
         }
+        .members { 
+            margin-top: 20px; 
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .members h3 {
+            margin-top: 0;
+        }
+        .member-item {
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
@@ -166,7 +181,7 @@
         <div class="back-to-chat">
             <button onclick="backToChatRooms()">Back to Chat Rooms</button>
         </div>
-        <h2 id="roomNameHeader">Messages in Testing</h2>
+        <h2 id="roomNameHeader">Messages in Private Group Chat</h2>
         <div class="search-group">
             <input type="text" id="searchInput" placeholder="Search messages..." oninput="searchMessages()">
         </div>
@@ -176,6 +191,10 @@
         <div class="form-group">
             <input type="text" id="messageInput" placeholder="Type a message...">
             <button onclick="sendMessage()">Send</button>
+        </div>
+        <div class="members" id="members">
+            <h3>Members:</h3>
+            <!-- Members will be listed here -->
         </div>
     </div>
 
@@ -213,6 +232,24 @@
             });
 
             scrollToBottom();
+        }
+
+        async function fetchMembers() {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${baseURL}/api/chat/room/${roomId}/members`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            const data = await response.json();
+            const membersDiv = document.getElementById('members');
+            membersDiv.innerHTML = '<h3>Members:</h3>';
+
+            data.members.forEach(member => {
+                const div = document.createElement('div');
+                div.className = 'member-item';
+                div.textContent = member.username;
+                membersDiv.appendChild(div);
+            });
         }
 
         function displayMessage(message) {
@@ -344,8 +381,11 @@
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
 
-        // Fetch messages when the page loads
-        window.onload = fetchMessages;
+        // Fetch messages and members when the page loads
+        window.onload = () => {
+            fetchMessages();
+            fetchMembers();
+        };
     </script>
 </body>
 </html>

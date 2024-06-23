@@ -3,10 +3,19 @@ const ChatRoom = require('../models/chatRoom');
 const Message = require('../models/message');
 
 const createRoom = async (name, isPrivate, members = []) => {
+  if (isPrivate && Array.isArray(members) && members.length > 0) {
+    const existingRoom = await ChatRoom.findOne({ isPrivate, members: { $all: members, $size: members.length } });
+    if (existingRoom) {
+      return existingRoom;
+    }
+  }
+
   const chatRoom = new ChatRoom({ name, isPrivate, members });
   await chatRoom.save();
   return chatRoom;
 };
+
+
 
 
 const joinRoom = async (roomId, userId) => {
@@ -62,29 +71,45 @@ const getPrivateRooms = async (userId) => {
   return privateRooms;
 };
 
-const findPrivateRoom = async (user1, user2) => {
-  const room = await ChatRoom.findOne({
-      isPrivate: true,
-      $or: [
-          { members: [user1, user2] },
-          { members: [user2, user1] }
-      ]
-  });
-  return room;
-};
-
 const getPublicRooms = async () => {
   const rooms = await ChatRoom.find({ isPrivate: false });
   return rooms;
 };
 
+const findPrivateRoomByMembers = async (members) => {
+  if (!Array.isArray(members) || members.length === 0) {
+    throw new Error('Members array is invalid or empty');
+  }
+
+  const room = await ChatRoom.findOne({
+    isPrivate: true,
+    members: { $all: members, $size: members.length }
+  }).populate('members', 'username');
+  
+  return room;
+};
+
+
+
+
 const findPrivateRoomsForUser = async (userId) => {
   const rooms = await ChatRoom.find({
-      isPrivate: true,
-      members: userId
+    isPrivate: true,
+    members: userId
   }).populate('members', 'username');
   return rooms;
 };
+
+
+const getRoomMembers = async (roomId) => {
+  const room = await ChatRoom.findById(roomId).populate('members', 'username');
+  if (!room) {
+    throw new Error('Chat room not found');
+  }
+  return room.members;
+};
+
+
 
 //==================================================================================================
 
@@ -126,7 +151,6 @@ const deleteMessage = async (messageId, userId) => {
 
 //==================================================================================================
 
-
 module.exports = {
   createRoom,
   joinRoom,
@@ -136,8 +160,9 @@ module.exports = {
   editMessage,
   deleteMessage,
   getChatRooms,
-  getPrivateRooms, 
-  findPrivateRoom,
+  getPrivateRooms,
   getPublicRooms,
   findPrivateRoomsForUser,
+  findPrivateRoomByMembers,
+  getRoomMembers,
 };

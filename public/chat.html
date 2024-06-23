@@ -106,6 +106,20 @@
             font-size: 1.2em;
             margin-bottom: 10px;
         }
+        .create-group-btn {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-top: 10px;
+            width: 100%;
+        }
+        .create-group-btn:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -124,7 +138,8 @@
         <div class="sections-container">
             <div class="chat-section" id="allUsers">
                 <div class="section-title">All Users</div>
-                <!-- All users will be listed here -->
+                <div id="userList"></div>
+                <button class="create-group-btn" onclick="createGroup()">Create Group</button>
             </div>
             <div class="chat-section" id="publicRooms">
                 <div class="section-title">Public Rooms</div>
@@ -149,14 +164,14 @@
                 headers: { 'Authorization': 'Bearer ' + token }
             });
             const publicRoomsData = await publicResponse.json();
-            console.log("publicRoomsData:  ", publicRoomsData);
+            console.log("publicRoomsData: ", publicRoomsData);
 
             // Fetch private rooms for the current user
             const privateResponse = await fetch(`${baseURL}/api/chat/private-rooms`, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
             const privateRoomsData = await privateResponse.json();
-            console.log("privateRoomsData:  ", privateRoomsData);
+            console.log("privateRoomsData: ", privateRoomsData);
 
             const publicRooms = document.getElementById('publicRooms');
             const privateRooms = document.getElementById('privateRooms');
@@ -174,38 +189,30 @@
 
             // Populate private rooms
             privateRoomsData.forEach(room => {
-                const otherMember = room.members.find(member => member._id !== decodeToken(token).userId);
-                
-                if (otherMember) {
-                    const div = document.createElement('div');
-                    div.className = 'chat-room';
-                    div.textContent = `Private Room with ${otherMember.username}`;
-                    div.onclick = () => window.location.href = `messages.html?roomId=${room._id}&roomName=Private Room with ${otherMember.username}`;
-                    privateRooms.appendChild(div);
-                } else {
-                    console.error("No other member found in the private room", room);
-                }
+                const otherMemberNames = room.members.filter(member => member._id !== decodeToken(token).userId).map(member => member.username).join(', ');
+                const div = document.createElement('div');
+                div.className = 'chat-room';
+                div.textContent = `Private Room with ${otherMemberNames}`;
+                div.onclick = () => window.location.href = `messages.html?roomId=${room._id}&roomName=Private Room with ${otherMemberNames}`;
+                privateRooms.appendChild(div);
             });
         }
 
         async function fetchUsers() {
             const token = localStorage.getItem('token');
-            const currentUserId = decodeToken(token).userId;
-
             const response = await fetch(`${baseURL}/api/users`, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
 
             const data = await response.json();
-            const allUsers = document.getElementById('allUsers');
-            allUsers.innerHTML = '<div class="section-title">All Users</div>';
+            const allUsers = document.getElementById('userList');
+            allUsers.innerHTML = '';
 
             data.forEach(user => {
-                if (user._id !== currentUserId) {
+                if (user._id !== decodeToken(token).userId) {
                     const div = document.createElement('div');
                     div.className = 'user';
-                    div.textContent = user.username;
-                    div.onclick = () => createPrivateRoom(user._id, user.username);
+                    div.innerHTML = `<input type="checkbox" value="${user._id}" data-username="${user.username}"> ${user.username}`;
                     allUsers.appendChild(div);
                 }
             });
@@ -232,37 +239,73 @@
             }
         }
 
-        async function createPrivateRoom(userId, username) {
+
+        async function createPrivateRoom(userIds, usernames) {
             const token = localStorage.getItem('token');
             const currentUserId = decodeToken(token).userId;
 
-            // Check if a private room already exists
-            const response = await fetch(`${baseURL}/api/chat/private-room?user1=${currentUserId}&user2=${userId}`, {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
+            const members = [...userIds, currentUserId];
+            const names = [...usernames, decodeToken(token).username].join(', ');
+            console.log("names: ", names);
+            console.log("members: ", members);
 
-            const existingRoom = await response.json();
-
-            if (existingRoom) {
-                // Navigate to the existing private room
-                window.location.href = `messages.html?roomId=${existingRoom._id}&roomName=Private Room with ${username}`;
-            } else {
-                // Create a new private room if it doesn't exist
-                const createResponse = await fetch(`${baseURL}/api/chat/create-room`, {
+            try {
+                // Check if a private group already exists
+                const response = await fetch(`${baseURL}/api/chat/private-room`, {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token
                     },
-                    body: JSON.stringify({ name: `Private Room with ${username}`, isPrivate: true, members: [currentUserId, userId] })
+                    body: JSON.stringify({ members })
                 });
 
-                if (createResponse.ok) {
-                    fetchChatRooms();
+                if (response.ok) {
+                    const existingRoom = await response.json();
+                    console.log("existingRoom: ", existingRoom);
+
+                    // Navigate to the existing private group
+                    window.location.href = `messages.html?roomId=${existingRoom._id}&roomName=Private Group Chat`;
+                } else if (response.status === 404) {
+                    // Create a new private group if it doesn't exist
+                    const createResponse = await fetch(`${baseURL}/api/chat/create-room`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify({ name: `Private Group Chat`, isPrivate: true, members })
+                    });
+
+                    if (createResponse.ok) {
+                        console.log("Room created successfully");
+                        fetchChatRooms();
+                    } else {
+                        const data = await createResponse.json();
+                        alert(data.error);
+                    }
                 } else {
-                    const data = await createResponse.json();
-                    alert(data.error);
+                    const data = await response.json();
+                    alert(data.message || 'An error occurred');
                 }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while checking or creating the room');
+            }
+        }
+
+        
+        
+       
+        function createGroup() {
+            const checkboxes = document.querySelectorAll('#userList input[type="checkbox"]:checked');
+            const userIds = Array.from(checkboxes).map(checkbox => checkbox.value);
+            const usernames = Array.from(checkboxes).map(checkbox => checkbox.getAttribute('data-username'));
+
+            if (userIds.length > 0) {
+                createPrivateRoom(userIds, usernames);
+            } else {
+                alert('Please select at least one user to create a group.');
             }
         }
 
