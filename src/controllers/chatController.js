@@ -40,12 +40,12 @@ exports.joinRoom = async (req, res) => {
 
 exports.leaveRoom = async (req, res) => {
   try {
-    const { roomId } = req.body;
-    const response = await chatService.leaveRoom(roomId, req.user._id);
-    res.json(response);
-    publishEvent('userLeftRoom', JSON.stringify({ roomId, userId: req.user._id }));
+      const { roomId, userId } = req.body;
+      const result = await chatService.leaveRoom(roomId, userId);
+      res.json(result);
+      publishEvent('userLeftRoom', JSON.stringify({ roomId, userId: req.user._id }));
   } catch (error) {
-    res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error.message });
   }
 };
 
@@ -175,3 +175,5 @@ exports.getRoomMembers = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+

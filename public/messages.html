@@ -117,11 +117,11 @@
         .message:hover .actions {
             display: block;
         }
-        .back-to-chat {
+        .back-to-chat, .leave-room {
             text-align: right;
             margin-bottom: 20px;
         }
-        .back-to-chat button {
+        .back-to-chat button, .leave-room button {
             padding: 10px; 
             background-color: #4CAF50; 
             color: white; 
@@ -130,7 +130,7 @@
             border-radius: 4px;
             font-size: 16px;
         }
-        .back-to-chat button:hover {
+        .back-to-chat button:hover, .leave-room button:hover {
             background-color: #45a049;
         }
         .search-group {
@@ -206,6 +206,9 @@
             <div class="back-to-chat">
                 <button onclick="backToChatRooms()">Back to Chat Rooms</button>
             </div>
+            <div class="leave-room">
+                <button onclick="leaveRoom()">Leave Room</button>
+            </div>
             <div class="search-group">
                 <input type="text" id="searchInput" placeholder="Search messages..." oninput="searchMessages()">
             </div>
@@ -232,13 +235,13 @@
         socket.emit('joinRoom', { roomId });
 
         socket.on('message', message => {
-            console.log("socket.on")
             displayMessage(message);
             scrollToBottom();
         });
 
         async function fetchMessages() {
             const token = localStorage.getItem('token');
+            if (!checkAuth()) return;
             const response = await fetch(`${baseURL}/api/chat/messages/${roomId}`, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
@@ -248,7 +251,6 @@
             messagesDiv.innerHTML = '';
 
             data.forEach(message => {
-                console.log("fetchMessages")
                 displayMessage(message);
             });
 
@@ -257,6 +259,7 @@
 
         async function fetchMembers() {
             const token = localStorage.getItem('token');
+            if (!checkAuth()) return;
             const response = await fetch(`${baseURL}/api/chat/room/${roomId}/members`, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
@@ -274,7 +277,6 @@
         }
 
         function displayMessage(message) {
-            console.log("displayMessage")
             const messagesDiv = document.getElementById('messages');
             const div = document.createElement('div');
             div.className = `message ${message.sender._id === getUserId() ? 'user' : 'other'}`;
@@ -297,17 +299,38 @@
             const messageInput = document.getElementById('messageInput');
             const content = messageInput.value;
             const token = localStorage.getItem('token');
-            const user = decodeToken(token); // Use decodeToken function to extract user info
-
-            console.log('Token:', token);
-            console.log('Content:', content);
-            console.log('User ID:', user.userId);
+            const user = decodeToken(token);
 
             socket.emit('sendMessage', { roomId, content, sender: user.userId });
 
             messageInput.value = '';
         }
-        
+
+        async function leaveRoom() {
+            const token = localStorage.getItem('token');
+            const user = decodeToken(token);
+            if (!checkAuth()) return;
+
+            const response = await fetch(`${baseURL}/api/chat/leave-room`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({ roomId, userId: user.userId })
+            });
+
+            const data = await response.json();
+
+            if (data.roomDeleted) {
+                alert(data.message);
+                backToChatRooms();
+            } else {
+                alert(data.message);
+                window.location.href = 'chat.html';
+            }
+        }
+
         function decodeToken(token) {
             const payload = token.split('.')[1];
             const decoded = atob(payload);
@@ -329,6 +352,25 @@
             localStorage.removeItem('token');
             socket.emit('leaveRoom', { roomId });
             window.location.href = 'login.html';
+        }
+
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            try {
+                const user = decodeToken(token);
+                if (user.exp * 1000 < Date.now()) {
+                    window.location.href = 'login.html';
+                    return null;
+                }
+                return user;
+            } catch (e) {
+                window.location.href = 'login.html';
+                return null;
+            }
         }
 
         async function editMessage(messageId, currentContent) {
@@ -402,8 +444,8 @@
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
 
-        // Fetch messages and members when the page loads
         window.onload = () => {
+            if (!checkAuth()) return;
             fetchMessages();
             fetchMembers();
         };

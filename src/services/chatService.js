@@ -29,16 +29,37 @@ const joinRoom = async (roomId, userId) => {
   return chatRoom;
 };
 
+// const leaveRoom = async (roomId, userId) => {
+//   const chatRoom = await ChatRoom.findById(roomId);
+//   if (!chatRoom) {
+//     throw new Error('Chat room not found');
+//   }
+
+//   chatRoom.members.pull(userId);
+//   await chatRoom.save();
+//   return { message: 'Left the room' };
+// };
+
+
 const leaveRoom = async (roomId, userId) => {
-  const chatRoom = await ChatRoom.findById(roomId);
-  if (!chatRoom) {
-    throw new Error('Chat room not found');
+  const room = await ChatRoom.findById(roomId);
+
+  if (!room) {
+      throw new Error('Room not found');
   }
 
-  chatRoom.members.pull(userId);
-  await chatRoom.save();
-  return { message: 'Left the room' };
+  room.members.pull(userId);
+  await room.save();
+
+  if (room.members.length === 0) {
+      await ChatRoom.deleteOne({ _id: roomId });
+      return { message: 'Room deleted as it has no members', roomDeleted: true };
+  } else {
+      return { message: 'Left the room', roomDeleted: false };
+  }
 };
+
+
 
 const sendMessage = async (roomId, userId, content) => {
   if (!mongoose.Types.ObjectId.isValid(roomId)) {

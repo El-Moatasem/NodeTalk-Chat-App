@@ -24,6 +24,8 @@ router.post('/private-room', auth, chatController.findPrivateRoomByMembers);
 router.get('/private-rooms', auth, chatController.getPrivateRoomsForUser);
 router.get('/public-rooms', auth, chatController.getPublicRooms);
 router.get('/room/:roomId/members', auth, chatController.getRoomMembers); 
+router.post('/leave-room', auth, chatController.leaveRoom);
+
 
 
 module.exports = router;
