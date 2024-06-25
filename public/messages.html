@@ -133,6 +133,9 @@
         .back-to-chat button:hover, .leave-room button:hover {
             background-color: #45a049;
         }
+        .leave-room {
+            display: none; /* Hide by default */
+        }
         .search-group {
             margin-bottom: 15px;
             display: flex;
@@ -248,8 +251,8 @@
 
             const room = await response.json();
 
-            if (!room.isPrivate) {
-                document.getElementById('leave-room').style.display = 'none';
+            if (room.isPrivate) {
+                document.getElementById('leave-room').style.display = 'block';
             }
         }
 
