@@ -206,7 +206,7 @@
             <div class="back-to-chat">
                 <button onclick="backToChatRooms()">Back to Chat Rooms</button>
             </div>
-            <div class="leave-room">
+            <div class="leave-room" id="leave-room">
                 <button onclick="leaveRoom()">Leave Room</button>
             </div>
             <div class="search-group">
@@ -238,6 +238,20 @@
             displayMessage(message);
             scrollToBottom();
         });
+
+        async function fetchRoomInfo() {
+            const token = localStorage.getItem('token');
+            if (!checkAuth()) return;
+            const response = await fetch(`${baseURL}/api/chat/room-info/${roomId}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            const room = await response.json();
+
+            if (!room.isPrivate) {
+                document.getElementById('leave-room').style.display = 'none';
+            }
+        }
 
         async function fetchMessages() {
             const token = localStorage.getItem('token');
@@ -446,6 +460,7 @@
 
         window.onload = () => {
             if (!checkAuth()) return;
+            fetchRoomInfo(); // Fetch room info to check if the room is private
             fetchMessages();
             fetchMembers();
         };

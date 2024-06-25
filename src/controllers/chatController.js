@@ -177,3 +177,17 @@ exports.getRoomMembers = async (req, res) => {
 };
 
 
+
+exports.getRoomInfo = async (req, res) => {
+  try {
+      const roomId = req.params.roomId;
+      const room = await chatService.getRoomInfo(roomId);
+      res.status(200).json(room);
+  } catch (error) {
+      if (error.message === 'Room not found') {
+          res.status(404).json({ message: error.message });
+      } else {
+          res.status(500).json({ error: error.message });
+      }
+  }
+};

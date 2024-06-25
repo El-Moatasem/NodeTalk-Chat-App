@@ -29,17 +29,6 @@ const joinRoom = async (roomId, userId) => {
   return chatRoom;
 };
 
-// const leaveRoom = async (roomId, userId) => {
-//   const chatRoom = await ChatRoom.findById(roomId);
-//   if (!chatRoom) {
-//     throw new Error('Chat room not found');
-//   }
-
-//   chatRoom.members.pull(userId);
-//   await chatRoom.save();
-//   return { message: 'Left the room' };
-// };
-
 
 const leaveRoom = async (roomId, userId) => {
   const room = await ChatRoom.findById(roomId);
@@ -58,6 +47,17 @@ const leaveRoom = async (roomId, userId) => {
       return { message: 'Left the room', roomDeleted: false };
   }
 };
+
+const getRoomInfo = async (roomId) => {
+  const room = await ChatRoom.findById(roomId).populate('members', 'username');
+  if (!room) {
+      throw new Error('Room not found');
+  }
+  return room;
+};
+
+// -------------------------------------------------------------------------------------
+
 
 
 
@@ -176,6 +176,7 @@ module.exports = {
   createRoom,
   joinRoom,
   leaveRoom,
+  getRoomInfo,
   sendMessage,
   getMessages,
   editMessage,
