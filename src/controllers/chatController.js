@@ -183,6 +183,7 @@ exports.getRoomInfo = async (req, res) => {
       const roomId = req.params.roomId;
       const room = await chatService.getRoomInfo(roomId);
       res.status(200).json(room);
+      publishEvent('roomInfoRetrieved', JSON.stringify(room)); // Added event
   } catch (error) {
       if (error.message === 'Room not found') {
           res.status(404).json({ message: error.message });
