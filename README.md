@@ -29,8 +29,19 @@ git clone https://github.com/El-Moatasem/VOIS_NodeJS_Assessment.git
 cd VOIS_NodeJS_Assessment
 ```
 
+### 2. Install dependencies
 
+```bash
+yarn install
+```
 
+### 3. Set up environment variables
 
+Create a `.env` file in the root directory and add the following environment variables:
 
+```plaintext
+MONGO_URI=mongodb://localhost:27017/chat-app
+JWT_SECRET=your_jwt_secret
+REDIS_URL=redis://127.0.0.1:6379
+```
 
