@@ -1,16 +1,13 @@
-// src/controllers/chatController.js
 const chatService = require('../services/chatService');
 const mongoose = require('mongoose');
 const Message = require('../models/message');
 const { publishEvent } = require('../services/eventBus');
-
 
 exports.createRoom = async (req, res) => {
   try {
     const { name, isPrivate, members } = req.body;
     if (isPrivate && Array.isArray(members) && members.length > 0) {
       const existingRoom = await chatService.findPrivateRoomByMembers(members);
-      console.log("existingRoom_existingRoom: ", existingRoom)
       if (existingRoom) {
         res.status(200).json(existingRoom);
         return;
@@ -20,12 +17,9 @@ exports.createRoom = async (req, res) => {
     res.status(201).json(chatRoom);
     publishEvent('chatRoomCreated', JSON.stringify(chatRoom));
   } catch (error) {
-    console.log("createRoom_error", error);
     res.status(500).json({ error: error.message });
   }
 };
-
-
 
 exports.joinRoom = async (req, res) => {
   try {
@@ -40,12 +34,12 @@ exports.joinRoom = async (req, res) => {
 
 exports.leaveRoom = async (req, res) => {
   try {
-      const { roomId, userId } = req.body;
-      const result = await chatService.leaveRoom(roomId, userId);
-      res.json(result);
-      publishEvent('userLeftRoom', JSON.stringify({ roomId, userId: req.user._id }));
+    const { roomId, userId } = req.body;
+    const result = await chatService.leaveRoom(roomId, userId);
+    res.json(result);
+    publishEvent('userLeftRoom', JSON.stringify({ roomId, userId: req.user._id }));
   } catch (error) {
-      res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -53,7 +47,6 @@ exports.sendMessage = async (req, res) => {
   try {
     const { roomId, content } = req.body;
     const sender = req.user._id;
-
     const populatedMessage = await chatService.sendMessage(roomId, sender, content);
     res.status(201).json(populatedMessage);
     publishEvent('messageSent', JSON.stringify(populatedMessage));
@@ -67,7 +60,7 @@ exports.getMessages = async (req, res) => {
     const { roomId } = req.params;
     const messages = await Message.find({ roomId: mongoose.Types.ObjectId(roomId) }).populate('sender', 'username');
     res.json(messages);
-    publishEvent('messagesFetched', JSON.stringify({ roomId, messages })); // Added event
+    publishEvent('messagesFetched', JSON.stringify({ roomId, messages }));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -100,7 +93,7 @@ exports.searchMessages = async (req, res) => {
     const { roomId, keyword } = req.query;
     const messages = await Message.find({ roomId: mongoose.Types.ObjectId(roomId), content: new RegExp(keyword, 'i') }).populate('sender', 'username');
     res.json(messages);
-    publishEvent('messagesSearched', JSON.stringify({ roomId, keyword, messages })); // Added event
+    publishEvent('messagesSearched', JSON.stringify({ roomId, keyword, messages }));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -110,7 +103,7 @@ exports.getChatRooms = async (req, res) => {
   try {
     const chatRooms = await chatService.getChatRooms();
     res.json(chatRooms);
-    publishEvent('chatRoomsFetched', JSON.stringify(chatRooms)); // Added event
+    publishEvent('chatRoomsFetched', JSON.stringify(chatRooms));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -118,32 +111,26 @@ exports.getChatRooms = async (req, res) => {
 
 exports.getPublicRooms = async (req, res) => {
   try {
-      const rooms = await chatService.getPublicRooms();
-      res.json(rooms);
-      publishEvent('publicRoomsRetrieved', JSON.stringify(rooms));
+    const rooms = await chatService.getPublicRooms();
+    res.json(rooms);
+    publishEvent('publicRoomsRetrieved', JSON.stringify(rooms));
   } catch (error) {
-      res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
-
 
 exports.getPrivateRoomsForUser = async (req, res) => {
-  console.log("getPrivateRoomsForUser: ")
   try {
-      const userId = req.user._id;
-      const rooms = await chatService.findPrivateRoomsForUser(userId);
-      // console.log("rooms: ", rooms)
-      res.json(rooms);
-      publishEvent('privateRoomsRetrieved', JSON.stringify(rooms));
+    const userId = req.user._id;
+    const rooms = await chatService.findPrivateRoomsForUser(userId);
+    res.json(rooms);
+    publishEvent('privateRoomsRetrieved', JSON.stringify(rooms));
   } catch (error) {
-      
-      res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
-
 exports.findPrivateRoomByMembers = async (req, res) => {
-  console.log("findPrivateRoomByMembers: ")
   try {
     const { members } = req.body;
     if (!Array.isArray(members) || members.length === 0) {
@@ -159,11 +146,9 @@ exports.findPrivateRoomByMembers = async (req, res) => {
 
     publishEvent('privateRoomByMembersFound', JSON.stringify(room));
   } catch (error) {
-    console.error('findPrivateRoomByMembers_error:', error);
     res.status(500).json({ error: error.message });
   }
 };
-
 
 exports.getRoomMembers = async (req, res) => {
   try {
@@ -176,19 +161,17 @@ exports.getRoomMembers = async (req, res) => {
   }
 };
 
-
-
 exports.getRoomInfo = async (req, res) => {
   try {
-      const roomId = req.params.roomId;
-      const room = await chatService.getRoomInfo(roomId);
-      res.status(200).json(room);
-      publishEvent('roomInfoRetrieved', JSON.stringify(room)); // Added event
+    const roomId = req.params.roomId;
+    const room = await chatService.getRoomInfo(roomId);
+    res.status(200).json(room);
+    publishEvent('roomInfoRetrieved', JSON.stringify(room));
   } catch (error) {
-      if (error.message === 'Room not found') {
-          res.status(404).json({ message: error.message });
-      } else {
-          res.status(500).json({ error: error.message });
-      }
+    if (error.message === 'Room not found') {
+      res.status(404).json({ message: error.message });
+    } else {
+      res.status(500).json({ error: error.message });
+    }
   }
 };
