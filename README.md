@@ -40,8 +40,9 @@ yarn install
 Create a `.env` file in the root directory and add the following environment variables:
 
 ```plaintext
-MONGO_URI=mongodb://localhost:27017/chat-app
+PORT=3000
+MONGODB_URI=mongodb://localhost:27017/nodetalk
 JWT_SECRET=your_jwt_secret
-REDIS_URL=redis://127.0.0.1:6379
+REDIS_URL=redis://localhost:6379
 ```
 
