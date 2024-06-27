@@ -46,3 +46,69 @@ JWT_SECRET=your_jwt_secret
 REDIS_URL=redis://localhost:6379
 ```
 
+### Start the Application
+
+```bash
+yarn start
+```
+
+The application will be available at `http://localhost:3000`.
+
+
+## Project Structure
+
+* `src/`
+  * `controllers/`: Contains the controller logic for handling HTTP requests.
+  * `models/`: Contains Mongoose models for MongoDB.
+  * `services/`: Contains the business logic and integrates with models and other services.
+  * `routes/`: Defines the routes for the application.
+  * `utils/`: Utility functions and middleware.
+  * `app.js`: The main application setup.
+  * `server.js`: The server setup and Socket.IO configuration.
+
+
+
+## API Endpoints
+
+### Auth
+
+* `POST /api/auth/register`: Register a new user.
+* `POST /api/auth/login`: Login a user.
+* `POST /api/auth/logout`: Logout a user.
+
+
+### Users
+
+* `GET /api/users`: Get all users.
+* `GET /api/users/:id`: Get a user by ID.
+
+### Chat
+
+* `POST /api/chat/create-room`: Create a new chat room.
+* `POST /api/chat/join-room`: Join a chat room.
+* `POST /api/chat/leave-room`: Leave a chat room.
+* `GET /api/chat/messages/:roomId`: Get messages for a room.
+* `POST /api/chat/send-message`: Send a message to a room.
+
+### Socket.IO Events
+
+* `joinRoom`: Join a chat room.
+* `leaveRoom`: Leave a chat room.
+* `sendMessage`: Send a message to a chat room.
+* `message`: Receive a message from a chat room.
+
+
+
+## Event Bus
+
+An event bus is implemented using Redis Pub/Sub to facilitate communication between different components of the chat application. Events are published for actions such as:
+
+* User registration
+* User login
+* Sending messages
+* Other relevant actions
+
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
