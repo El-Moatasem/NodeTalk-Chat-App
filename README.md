@@ -88,7 +88,7 @@ The application will be available at `http://localhost:3000`.
    mongo
   ```
 
-  This should open the MongoDB shell. If you see a prompt starting with `>`, MongoDB is running correctly.
+This should open the MongoDB shell. If you see a prompt starting with `>`, MongoDB is running correctly.
 
 ## Configuring Redis
 
