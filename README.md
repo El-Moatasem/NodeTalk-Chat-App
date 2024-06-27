@@ -86,7 +86,9 @@ The application will be available at `http://localhost:3000`.
    Open a new terminal window and run:
    ```bash
    mongo
-  ```
+
+
+
 
 This should open the MongoDB shell. If you see a prompt starting with `>`, MongoDB is running correctly.
 
