@@ -58,7 +58,7 @@ exports.sendMessage = async (req, res) => {
 exports.getMessages = async (req, res) => {
   try {
     const { roomId } = req.params;
-    const messages = await Message.find({ roomId: mongoose.Types.ObjectId(roomId) }).populate('sender', 'username');
+    const messages = await Message.find({ roomId: new mongoose.Types.ObjectId(roomId) }).populate('sender', 'username');
     res.json(messages);
     publishEvent('messagesFetched', JSON.stringify({ roomId, messages }));
   } catch (error) {
@@ -91,7 +91,7 @@ exports.deleteMessage = async (req, res) => {
 exports.searchMessages = async (req, res) => {
   try {
     const { roomId, keyword } = req.query;
-    const messages = await Message.find({ roomId: mongoose.Types.ObjectId(roomId), content: new RegExp(keyword, 'i') }).populate('sender', 'username');
+    const messages = await Message.find({ roomId: new mongoose.Types.ObjectId(roomId), content: new RegExp(keyword, 'i') }).populate('sender', 'username');
     res.json(messages);
     publishEvent('messagesSearched', JSON.stringify({ roomId, keyword, messages }));
   } catch (error) {
