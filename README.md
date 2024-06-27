@@ -55,6 +55,73 @@ yarn start
 The application will be available at `http://localhost:3000`.
 
 
+## Configuring MongoDB
+
+1. **Download MongoDB:**
+   Visit the [MongoDB Download Center](https://www.mongodb.com/try/download/community) and download the appropriate version for your operating system.
+
+2. **Install MongoDB:**
+   Follow the installation instructions for your operating system:
+   * **Windows:** Run the downloaded `.msi` file and follow the installation wizard.
+   * **macOS:** Use Homebrew to install MongoDB:
+     ```bash
+     brew tap mongodb/brew
+     brew install mongodb-community@4.4
+     ```
+   * **Linux:** Follow the instructions for your specific distribution from the MongoDB documentation.
+
+3. **Run MongoDB:**
+   After installation, start the MongoDB server:
+   * **Windows:** Run `mongod` in the Command Prompt.
+   * **macOS:** Use Homebrew services to start MongoDB:
+     ```bash
+     brew services start mongodb-community@4.4
+     ```
+   * **Linux:** Start the MongoDB service:
+     ```bash
+     sudo systemctl start mongod
+     ```
+
+4. **Verify MongoDB Installation:**
+   Open a new terminal window and run:
+   ```bash
+   mongo
+  ```
+
+  This should open the MongoDB shell. If you see a prompt starting with `>`, MongoDB is running correctly.
+
+## Configuring Redis
+
+1. **Download Redis:**
+   Visit the [Redis Download Page](https://redis.io/download) and download the appropriate version for your operating system.
+
+2. **Install Redis:**
+   Follow the installation instructions for your operating system:
+   * **Windows:** Use the Memurai or Redis for Windows port.
+   * **macOS:** Use Homebrew to install Redis:
+     ```bash
+     brew install redis
+     ```
+   * **Linux:** Follow the instructions for your specific distribution from the Redis documentation.
+
+3. **Run Redis:**
+   After installation, start the Redis server:
+   * **Windows:** Run `redis-server` in the Command Prompt.
+   * **macOS:** Use Homebrew services to start Redis:
+     ```bash
+     brew services start redis
+     ```
+   * **Linux:** Start the Redis service:
+     ```bash
+     sudo systemctl start redis
+     ```
+
+4. **Verify Redis Installation:**
+   Open a new terminal window and run:
+   ```bash
+   redis-cli ping
+  ```
+
 ## Project Structure
 
 * `src/`
