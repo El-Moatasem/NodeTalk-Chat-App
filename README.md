@@ -122,7 +122,6 @@ This should open the MongoDB shell. If you see a prompt starting with `>`, Mongo
    Open a new terminal window and run:
    ```bash
    redis-cli ping
-  ```
 
 ## Project Structure
 
