@@ -165,7 +165,7 @@ const deleteMessage = async (messageId, userId) => {
     throw new Error('You can only delete your own messages');
   }
 
-  await message.remove();
+  await message.deleteOne(); // Changed from message.remove()
   return { message: 'Message deleted' };
 };
 

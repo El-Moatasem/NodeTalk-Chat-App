@@ -29,7 +29,7 @@ io.on('connection', (socket) => {
         const message = new Message({ roomId, content, sender });
         try {
             await message.save();
-            const populatedMessage = await message.populate('sender', 'username').execPopulate();
+            const populatedMessage = await Message.findById(message._id).populate('sender', 'username').exec();
             io.to(roomId).emit('message', {
                 _id: populatedMessage._id, // Ensure the message ID is included
                 sender: populatedMessage.sender,
