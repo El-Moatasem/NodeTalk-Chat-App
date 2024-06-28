@@ -1,3 +1,4 @@
+// src/server.js
 const express = require('express'); 
 const app = require('./app');
 const http = require('http');
@@ -5,6 +6,9 @@ const socketIO = require('socket.io');
 const path = require('path');
 const mongoose = require('mongoose');
 const Message = require('./models/message'); // Import your Message model
+
+// Global variable to handle cache invalidation
+global.invalidateCache = false;
 
 const server = http.createServer(app);
 const io = socketIO(server);
@@ -22,7 +26,6 @@ io.on('connection', (socket) => {
         console.log(`User left room ${roomId}`);
     });
 
-
     socket.on('sendMessage', async ({ roomId, content, sender }) => {
         console.log('Received message data:', { roomId, content, sender });
     
@@ -37,11 +40,13 @@ io.on('connection', (socket) => {
                 roomId: populatedMessage.roomId,
                 timestamp: populatedMessage.timestamp
             });
+
+            // Set the invalidateCache flag to true when a new message is sent
+            global.invalidateCache = true;
         } catch (error) {
             console.error('Error saving message:', error);
         }
     });
-
 
     socket.on('disconnect', () => {
         console.log('Client disconnected');
