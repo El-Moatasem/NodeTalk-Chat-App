@@ -1,7 +1,11 @@
+// src/controllers/chatController.js
 const chatService = require('../services/chatService');
 const mongoose = require('mongoose');
 const Message = require('../models/message');
 const { publishEvent } = require('../services/eventBus');
+const { getCache, setCache, delCache } = require('../services/cacheService');
+
+global.invalidateCache = false;
 
 exports.createRoom = async (req, res) => {
   try {
@@ -50,6 +54,8 @@ exports.sendMessage = async (req, res) => {
     const populatedMessage = await chatService.sendMessage(roomId, sender, content);
     res.status(201).json(populatedMessage);
     publishEvent('messageSent', JSON.stringify(populatedMessage));
+    global.invalidateCache = true;
+    await delCache(`messages:${roomId}`);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -58,9 +64,23 @@ exports.sendMessage = async (req, res) => {
 exports.getMessages = async (req, res) => {
   try {
     const { roomId } = req.params;
+    const cacheKey = `messages:${roomId}`;
+
+    if (!global.invalidateCache) {
+      const cachedMessages = await getCache(cacheKey);
+      if (cachedMessages) {
+        console.log('Cache hit for messages:', roomId);
+        return res.json(cachedMessages);
+      }
+    }
+
+    console.log('Cache miss for messages:', roomId);
     const messages = await Message.find({ roomId: new mongoose.Types.ObjectId(roomId) }).populate('sender', 'username');
+
     res.json(messages);
     publishEvent('messagesFetched', JSON.stringify({ roomId, messages }));
+    await setCache(cacheKey, messages);
+    global.invalidateCache = false;
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -72,6 +92,8 @@ exports.editMessage = async (req, res) => {
     const message = await chatService.editMessage(messageId, req.user._id, newContent);
     res.json(message);
     publishEvent('messageEdited', JSON.stringify(message));
+    global.invalidateCache = true;
+    await delCache(`messages:${message.roomId}`);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -83,6 +105,8 @@ exports.deleteMessage = async (req, res) => {
     const response = await chatService.deleteMessage(messageId, req.user._id);
     res.json(response);
     publishEvent('messageDeleted', JSON.stringify(response));
+    global.invalidateCache = true;
+    await delCache(`messages:${response.roomId}`);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -91,9 +115,23 @@ exports.deleteMessage = async (req, res) => {
 exports.searchMessages = async (req, res) => {
   try {
     const { roomId, keyword } = req.query;
+    const cacheKey = `searchMessages:${roomId}:${keyword}`;
+
+    if (!global.invalidateCache) {
+      const cachedMessages = await getCache(cacheKey);
+      if (cachedMessages) {
+        console.log('Cache hit for search messages:', roomId, keyword);
+        return res.json(cachedMessages);
+      }
+    }
+
+    console.log('Cache miss for search messages:', roomId, keyword);
     const messages = await Message.find({ roomId: new mongoose.Types.ObjectId(roomId), content: new RegExp(keyword, 'i') }).populate('sender', 'username');
+
     res.json(messages);
     publishEvent('messagesSearched', JSON.stringify({ roomId, keyword, messages }));
+    await setCache(cacheKey, messages);
+    global.invalidateCache = false;
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
