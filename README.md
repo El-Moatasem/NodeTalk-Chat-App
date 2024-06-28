@@ -166,6 +166,10 @@ This should open the MongoDB shell. If you see a prompt starting with `>`, Mongo
 * `message`: Receive a message from a chat room.
 
 
+## Caching
+
+The application uses Redis for caching frequently accessed data to improve performance.
+
 
 ## Event Bus
 
